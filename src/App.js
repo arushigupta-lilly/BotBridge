@@ -1,27 +1,345 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
+//Functions and const for the app//
 function App() {
-  const [chats, setChats] = useState(["Chat 1"]);
-  const [activeChat, setActiveChat] = useState(0);
-  const [chatMessages, setChatMessages] = useState({
-    0: [{ text: "Hello! How can I help you today?", sender: "bot" }]
+  const [chats, setChats] = useState(["Chat 1"]); // Initial chat
+  const [activeChat, setActiveChat] = useState(0); // Active chat index
+  const [chatMessages, setChatMessages] = useState({ // Object to hold messages for each chat
+    0: [{ text: "Hello! How can I help you today?", sender: "bot" }] // Initial message in the first chat
   });
-  const [input, setInput] = useState("");
-  const [hasStarted, setHasStarted] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [isBotTyping, setIsBotTyping] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const [showProfile, setShowProfile] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [fontSize, setFontSize] = useState('1rem');
+  const [input, setInput] = useState(""); // Input field state
+  const [hasStarted, setHasStarted] = useState(false); // Flag to check if the chat has started
+  const [darkMode, setDarkMode] = useState(false); // Dark mode state
+  const [isBotTyping, setIsBotTyping] = useState(false);// Bot typing indicator state
+  const [showSuggestions, setShowSuggestions] = useState(true);// Suggestions bar visibility state
+  const [showProfile, setShowProfile] = useState(false);  // Profile modal visibility state
+  const [showSettings, setShowSettings] = useState(false);// Settings modal visibility state
+  
+  // Voice features state
+  const [isListening, setIsListening] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [speechRate, setSpeechRate] = useState(1);
+  const [speechVolume, setSpeechVolume] = useState(1);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const recognitionRef = useRef(null);
+  const synthRef = useRef(null);
+  const [user, setUser] = useState(() => {
+    // Try to load user from localStorage
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [showLogin, setShowLogin] = useState(!user);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
-  const userName = "Daniella Melero";
-  const initials = userName
+  const [fontSize, setFontSize] = useState('1rem');// Font size state
+
+  // Login form states
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [editProfileForm, setEditProfileForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    avatar: null
+  });
+  const [authError, setAuthError] = useState('');
+
+  // Initialize Speech Recognition and Synthesis
+  useEffect(() => {
+    // Check if browser supports Speech Recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+      
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+      };
+      
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setShowSuggestions(false);
+      };
+      
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+      
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          alert('Microphone access denied. Please allow microphone access for voice input.');
+        }
+      };
+    }
+    
+    // Initialize Speech Synthesis
+    if ('speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+    }
+    
+    // Keyboard shortcuts
+    const handleKeyPress = (e) => {
+      // Ctrl/Cmd + M to toggle microphone
+      if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+        e.preventDefault();
+        if (isListening) {
+          stopListening();
+        } else {
+          startListening();
+        }
+      }
+      
+      // Ctrl/Cmd + Shift + V to toggle voice output
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        setVoiceEnabled(prev => !prev);
+      }
+      
+      // Ctrl/Cmd + R to repeat last bot message
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+        e.preventDefault();
+        repeatLastMessage();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (synthRef.current) {
+        synthRef.current.cancel();
+      }
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [isListening]);
+
+  // Voice Recognition Functions
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+      }
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+  };
+
+  // Text-to-Speech Function
+  const speakText = (text) => {
+    if (synthRef.current && voiceEnabled && text) {
+      // Cancel any ongoing speech
+      synthRef.current.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = speechRate;
+      utterance.volume = speechVolume;
+      utterance.lang = 'en-US';
+      
+      // Add event listeners
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      // Get available voices and prefer a natural sounding one
+      const voices = synthRef.current.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.lang.includes('en') && 
+        (voice.name.includes('Natural') || voice.name.includes('Neural'))
+      ) || voices.find(voice => voice.lang.includes('en'));
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      synthRef.current.speak(utterance);
+    }
+  };
+
+  // Repeat last bot message
+  const repeatLastMessage = () => {
+    const messages = chatMessages[activeChat] || [];
+    const lastBotMessage = messages.slice().reverse().find(msg => msg.sender === 'bot');
+    if (lastBotMessage) {
+      speakText(lastBotMessage.text);
+    }
+  };
+
+  // Stop speaking
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  const userName = user ? `${user.firstName} ${user.lastName}` : "Guest User";
+  const initials = user ? userName
     .split(' ')
     .map(n => n[0])
     .join('')
-    .toUpperCase();
+    .toUpperCase() : "GU";  // Lilly email domain validation
+  const isValidLillyEmail = (email) => {
+    const lillyDomains = [
+      '@lilly.com',
+      '@elililly.com'
+    ];
+    return lillyDomains.some(domain => email.toLowerCase().endsWith(domain));
+  };
+
+  // Authentication functions
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setAuthError('');
+    
+    // Validation
+    if (!loginForm.email || !loginForm.password) {
+      setAuthError('Please fill in all fields');
+      return;
+    }
+
+    // Lilly email domain validation
+    if (!isValidLillyEmail(loginForm.email)) {
+      setAuthError('Access restricted to Eli Lilly and Company employees only. Please use your Lilly email address.');
+      return;
+    }
+
+    // Password validation (minimum requirements)
+    if (loginForm.password.length < 8) {
+      setAuthError('Password must be at least 8 characters long');
+      return;
+    }
+
+    // Extract user info from Lilly email
+    const emailParts = loginForm.email.split('@')[0];
+    const nameParts = emailParts.split('.');
+    
+    let firstName = 'Employee';
+    let lastName = 'User';
+    
+    if (nameParts.length >= 2) {
+      firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1);
+      lastName = nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1);
+    } else if (nameParts.length === 1) {
+      firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1);
+    }
+
+    // In a real implementation, you would validate credentials against Lilly's Active Directory
+    // For now, we'll simulate successful authentication for valid Lilly emails
+    const userData = {
+      id: Date.now(),
+      firstName: firstName,
+      lastName: lastName,
+      email: loginForm.email,
+      avatar: null,
+      joinDate: new Date().toLocaleDateString(),
+      department: 'Eli Lilly and Company',
+      isLillyEmployee: true
+    };
+    
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setShowLogin(false);
+    setLoginForm({ email: '', password: '' });
+    setAuthError('');
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+    setShowLogin(true);
+    setShowProfile(false);
+    setAuthError('');
+    // Reset chat data on logout
+    setChats(["Chat 1"]);
+    setActiveChat(0);
+    setChatMessages({ 0: [{ text: "Hello! How can I help you today?", sender: "bot" }] });
+    setHasStarted(false);
+    setShowSuggestions(true);
+  };
+
+  const handleEditProfile = (e) => {
+    e.preventDefault();
+    
+    // Check if user exists
+    if (!user) {
+      alert('User session not found. Please log in again.');
+      setShowEditProfile(false);
+      setShowLogin(true);
+      return;
+    }
+    
+    if (!editProfileForm.firstName || !editProfileForm.lastName || !editProfileForm.email) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    // Validate Lilly email when editing profile
+    if (!isValidLillyEmail(editProfileForm.email)) {
+      alert('Email must be a valid Lilly email address');
+      return;
+    }
+    
+    const updatedUser = {
+      ...user,
+      firstName: editProfileForm.firstName,
+      lastName: editProfileForm.lastName,
+      email: editProfileForm.email,
+      avatar: editProfileForm.avatar || user.avatar
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    setShowEditProfile(false);
+    setShowProfile(true);
+    setEditProfileForm({ firstName: '', lastName: '', email: '', avatar: null });
+  };
+
+  const openEditProfile = () => {
+    // Check if user exists before accessing properties
+    if (!user) {
+      console.error('No user data available');
+      return;
+    }
+    
+    setEditProfileForm({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      avatar: user.avatar || null
+    });
+    setShowEditProfile(true);
+    setShowProfile(false);
+  };
+
+  const handleAvatarUpload = (file, formType) => {
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (formType === 'edit') {
+          setEditProfileForm(prev => ({ ...prev, avatar: e.target.result }));
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('Please select a valid image file');
+    }
+  };
+
+//Suggetions for the bot//
 
   const suggestions = [
     "What are the best ways to travel to Indianapolis?",
@@ -30,7 +348,7 @@ function App() {
     "Are there any must-see attractions in Indianapolis?",
     "How do I get from the airport to downtown Indianapolis?"
   ];
-
+//This function handle the send button and the connection with the backend and the timestamp of the message//
   const handleSend = async () => {
     if (!input.trim()) return;
     setShowSuggestions(false);
@@ -46,7 +364,7 @@ function App() {
     setInput("");
     setHasStarted(true);
     setIsBotTyping(true);
-
+//* This is where the bot's response is fetched from the backend *//
     try {
       const response = await fetch("http://localhost:5000/api/supervisor-bot", {
         method: "POST",
@@ -55,23 +373,35 @@ function App() {
       });
       const data = await response.json();
       const botNow = new Date();
+      const botResponse = data.reply || "Sorry, no response.";
       setChatMessages(prev => {
         const updated = { ...prev };
         updated[activeChat] = [
           ...(updated[activeChat] || []),
-          { text: data.reply || "Sorry, no response.", sender: "bot", time: botNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+          { text: botResponse, sender: "bot", time: botNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
         ];
         return updated;
       });
+      
+      // Speak the bot's response if voice is enabled
+      if (voiceEnabled) {
+        speakText(botResponse);
+      }
     } catch (error) {
+      const errorMessage = "Error connecting to Supervisor-bot.";
       setChatMessages(prev => {
         const updated = { ...prev };
         updated[activeChat] = [
           ...(updated[activeChat] || []),
-          { text: "Error connecting to Supervisor-bot.", sender: "bot", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+          { text: errorMessage, sender: "bot", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
         ];
         return updated;
       });
+      
+      // Speak error message if voice is enabled
+      if (voiceEnabled) {
+        speakText(errorMessage);
+      }
     }
     setIsBotTyping(false);
   };
@@ -79,7 +409,7 @@ function App() {
   const handleInputKeyDown = (e) => {
     if (e.key === 'Enter') handleSend();
   };
-
+//This function handle the new chat button//
   const handleNewChat = () => {
     const newIndex = chats.length;
     setChats([...chats, `Chat ${newIndex + 1}`]);
@@ -92,7 +422,7 @@ function App() {
     setHasStarted(false);
     setShowSuggestions(true); // <-- Always show suggestions on new chat
   };
-
+//This function handle the chat selection//
   const handleSelectChat = idx => {
     setActiveChat(idx);
     const started = (chatMessages[idx] && chatMessages[idx].length > 1) || false;
@@ -102,12 +432,18 @@ function App() {
   };
 
   const messages = chatMessages[activeChat] || [];
-
+//Dark mode and light mode//
   return (
     <div className={`App${darkMode ? " dark-mode" : ""}`}>
       <aside className="sidemenu">
         <div className="app-title">BotBridge</div>
-        <button className="new-chat-btn" onClick={handleNewChat}>+ New Chat</button>
+        <button className="new-chat-btn" onClick={handleNewChat}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          New Chat
+        </button>
         <ul>
           {chats.map((chat, idx) => (
             <li
@@ -121,20 +457,71 @@ function App() {
           ))}
         </ul>
       </aside>
+      
       <div className="top-right-controls">
-        <div className="profile-circle" onClick={() => setShowProfile(true)} style={{ cursor: "pointer" }}>
-          <span>{initials}</span>
-        </div>
+        {user ? (
+          <div className="profile-circle" onClick={() => setShowProfile(true)} style={{ cursor: "pointer" }}>
+            <span>{initials}</span>
+          </div>
+        ) : (
+          <button className="login-access-btn" onClick={() => setShowLogin(true)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <circle cx="12" cy="16" r="1"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Login
+          </button>
+        )}
         <button className="settings-btn" onClick={() => setShowSettings(true)} aria-label="Settings">
-          ⚙️
+          Settings
         </button>
       </div>
-      {showProfile && (
+      {showProfile && user && (
         <div className="profile-modal" onClick={() => setShowProfile(false)}>
           <div className="profile-content" onClick={e => e.stopPropagation()}>
-            <div className="profile-avatar">{initials}</div>
-            <div className="profile-name">{userName}</div>
-            <button className="close-profile-btn" onClick={() => setShowProfile(false)}>Close</button>
+            <div className="profile-header">
+              <div className="profile-avatar">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Profile" className="avatar-image" />
+                ) : (
+                  <span>{initials}</span>
+                )}
+              </div>
+              <div className="profile-info">
+                <div className="profile-name">{userName}</div>
+                <div className="profile-email">{user?.email}</div>
+                <div className="profile-department">{user?.department}</div>
+                <div className="profile-join-date">Member since: {user?.joinDate}</div>
+                {user?.isLillyEmployee && (
+                  <div className="lilly-badge">✓ Verified Lilly Employee</div>
+                )}
+              </div>
+            </div>
+            <div className="profile-actions">
+              <button className="edit-profile-btn" onClick={openEditProfile}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Edit Profile
+              </button>
+              <button className="logout-btn" onClick={handleLogout}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16,17 21,12 16,7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Logout
+              </button>
+            </div>
+            <button className="close-profile-btn" onClick={() => setShowProfile(false)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Close
+            </button>
           </div>
         </div>
       )}
@@ -152,6 +539,7 @@ function App() {
                 </div>
               ))
             : null}
+            
           {isBotTyping && (
             <div className="message bot">
               <span className="typing-indicator">
@@ -160,17 +548,25 @@ function App() {
             </div>
           )}
         </div>
-        {!hasStarted ? (
+        {!hasStarted ? (//Welcome message and input bar for new chats//
           <div className="input-bar-center-group">
             <div className="welcome-message">
               Hello! How can I help you today?
+            </div>
+            <div className="accessibility-help" style={{ fontSize: '0.9em', color: 'var(--neutral-600)', marginBottom: '12px', textAlign: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: '4px' }}>
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span>Accessibility: Use the microphone button for voice input, or press Ctrl+M</span>
             </div>
             <div className="input-bar input-bar-center">
               <label className="file-attach">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary-400)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 1 1 4.24 4.24l-9.2 9.19"></path>
                 </svg>
-                <input
+                <input //File upload button, currently just alerts the file name//
                   type="file"
                   style={{ display: "none" }}
                   onChange={e => {
@@ -182,7 +578,7 @@ function App() {
               </label>
               <input
                 type="text"
-                placeholder="Ask me anything..."
+                placeholder="Ask me anything..." //Input bar placeholder//
                 value={input}
                 onChange={e => {
                   setInput(e.target.value);
@@ -190,6 +586,26 @@ function App() {
                 }}
                 onKeyDown={handleInputKeyDown}
               />
+              {/* Voice input button */}
+              <button 
+                onClick={isListening ? stopListening : startListening}
+                className={`voice-btn ${isListening ? 'listening' : ''}`}
+                aria-label={isListening ? "Stop voice input" : "Start voice input"}
+                disabled={!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)}
+              >
+                {isListening ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                  </svg>
+                )}
+              </button>
               <button onClick={handleSend} className="send-btn" aria-label="Send">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary-400)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13" />
@@ -226,6 +642,26 @@ function App() {
                 if (e.key === 'Enter') handleSend();
               }}
             />
+            {/* Voice input button */}
+            <button 
+              onClick={isListening ? stopListening : startListening}
+              className={`voice-btn ${isListening ? 'listening' : ''}`}
+              aria-label={isListening ? "Stop voice input" : "Start voice input"}
+              disabled={!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)}
+            >
+              {isListening ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="6" y="6" width="12" height="12" rx="2"/>
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              )}
+            </button>
             <button onClick={handleSend} className="send-btn" aria-label="Send">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary-400)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13" />
@@ -250,8 +686,49 @@ function App() {
             ))}
           </div>
         )}
-        <button onClick={() => setDarkMode(dm => !dm)} className="dark-mode-toggle">
-          {darkMode ? "☀️ Light" : "🌙 Dark"}
+
+        {/* Voice listening indicator */}
+        {isListening && (
+          <div className="voice-status">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+            <span>Listening... Speak now</span>
+          </div>
+        )}
+
+        {/* Speech indicator */}
+        {isSpeaking && (
+          <div className="voice-status" style={{ background: 'var(--accent-500)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+            <span>Speaking...</span>
+            <button 
+              onClick={stopSpeaking}
+              style={{ 
+                marginLeft: '12px', 
+                background: 'white', 
+                border: 'none', 
+                padding: '4px 8px', 
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.8em'
+              }}
+            >
+              Stop
+            </button>
+          </div>
+        )}
+
+{/* Dark mode toggle button, moved inside main for better visibility */}
+        <button onClick={() => setDarkMode(dm => !dm)} className="dark-mode-toggle"> 
+          {darkMode ? "☀️" : "🌙"}
         </button>
       </main>
       {showSettings && (
@@ -272,6 +749,93 @@ function App() {
           Dark Mode
         </label>
       </div>
+      
+      {/* Voice Settings */}
+      <div style={{ margin: "18px 0" }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={voiceEnabled}
+            onChange={() => setVoiceEnabled(prev => !prev)}
+          />{" "}
+          Enable Text-to-Speech
+        </label>
+      </div>
+      
+      {voiceEnabled && (
+        <>
+          <div style={{ margin: "18px 0" }}>
+            <label>
+              Speech Rate: {speechRate}
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={speechRate}
+                onChange={e => setSpeechRate(parseFloat(e.target.value))}
+                style={{ marginLeft: 8, width: '100px' }}
+              />
+            </label>
+          </div>
+          
+          <div style={{ margin: "18px 0" }}>
+            <label>
+              Speech Volume: {speechVolume}
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={speechVolume}
+                onChange={e => setSpeechVolume(parseFloat(e.target.value))}
+                style={{ marginLeft: 8, width: '100px' }}
+              />
+            </label>
+          </div>
+          
+          <div style={{ margin: "18px 0" }}>
+            <button 
+              onClick={() => speakText("This is a test of the speech synthesis feature.")}
+              style={{ 
+                background: 'var(--accent-400)', 
+                color: 'white', 
+                border: 'none', 
+                padding: '8px 16px', 
+                borderRadius: '6px',
+                cursor: 'pointer',
+                marginRight: '8px'
+              }}
+            >
+              Test Speech
+            </button>
+            <button 
+              onClick={repeatLastMessage}
+              style={{ 
+                background: 'var(--primary-400)', 
+                color: 'white', 
+                border: 'none', 
+                padding: '8px 16px', 
+                borderRadius: '6px',
+                cursor: 'pointer'
+              }}
+            >
+              Repeat Last Message
+            </button>
+          </div>
+          
+          <div style={{ margin: "18px 0", padding: "12px", background: "var(--neutral-200)", borderRadius: "6px" }}>
+            <h4 style={{ margin: "0 0 8px 0", fontSize: "0.9em" }}>Keyboard Shortcuts:</h4>
+            <div style={{ fontSize: "0.8em", lineHeight: "1.4" }}>
+              <div><strong>Ctrl+M:</strong> Toggle voice input</div>
+              <div><strong>Ctrl+Shift+V:</strong> Toggle text-to-speech</div>
+              <div><strong>Ctrl+R:</strong> Repeat last bot message</div>
+            </div>
+          </div>
+        </>
+      )}
+      
+{/* Font size selector */}
       <div style={{ margin: "18px 0" }}>
         <label>
           Font Size:&nbsp;
@@ -291,7 +855,131 @@ function App() {
       <button className="close-settings-btn" onClick={() => setShowSettings(false)}>Close</button>
     </div>
   </div>
-)}
+)}      {/* Login Modal */}
+      {showLogin && (
+        <div className="auth-modal" onClick={() => user ? setShowLogin(false) : null}>
+          <div className="auth-content" onClick={e => e.stopPropagation()}>
+            <div className="lilly-logo">
+              <h2>Eli Lilly and Company</h2>
+              <h3>Employee Portal Access</h3>
+            </div>
+            {authError && (
+              <div className="auth-error">
+                {authError}
+              </div>
+            )}
+            <form onSubmit={handleLogin}>
+              <div className="form-group">
+                <label htmlFor="email">Lilly Email Address:</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="firstname.lastname@lilly.com"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="password">Password:</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Enter your password"
+                  required
+                  minLength="8"
+                />
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="login-btn">Sign In</button>
+                {user && (
+                  <button type="button" className="cancel-btn" onClick={() => setShowLogin(false)}>
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+            <div className="auth-disclaimer">
+              <p>This system is restricted to authorized Eli Lilly and Company employees only. 
+                 Unauthorized access is prohibited and may be subject to criminal and civil penalties.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && user && (
+        <div className="auth-modal" onClick={() => {
+          setShowEditProfile(false);
+          setShowProfile(true);
+        }}>
+          <div className="auth-content" onClick={e => e.stopPropagation()}>
+            <h2>Edit Profile</h2>
+            <form onSubmit={handleEditProfile}>
+              <div className="form-group">
+                <label htmlFor="editFirstName">First Name:</label>
+                <input
+                  type="text"
+                  id="editFirstName"
+                  value={editProfileForm.firstName}
+                  onChange={(e) => setEditProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="editLastName">Last Name:</label>
+                <input
+                  type="text"
+                  id="editLastName"
+                  value={editProfileForm.lastName}
+                  onChange={(e) => setEditProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="editEmail">Lilly Email:</label>
+                <input
+                  type="email"
+                  id="editEmail"
+                  value={editProfileForm.email}
+                  onChange={(e) => setEditProfileForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="firstname.lastname@lilly.com"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="editAvatar">Profile Picture:</label>
+                <input
+                  type="file"
+                  id="editAvatar"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files[0]) {
+                      handleAvatarUpload(e.target.files[0], 'edit');
+                    }
+                  }}
+                />
+                {(editProfileForm.avatar || user?.avatar) && (
+                  <div className="avatar-preview">
+                    <img src={editProfileForm.avatar || user.avatar} alt="Preview" />
+                  </div>
+                )}
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="save-btn">Save Changes</button>
+                <button type="button" className="cancel-btn" onClick={() => {
+                  setShowEditProfile(false);
+                  setShowProfile(true);
+                }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

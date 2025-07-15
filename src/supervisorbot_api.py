@@ -1,4 +1,4 @@
-"""travelbot_api.py
+"""supervisorbot_api.py
 
 Flask API backend for the TravelBot application.
 Receives user prompts from the frontend, sends them to the Cortex supervisor-bot model via the Lilly Light Client,
@@ -45,6 +45,9 @@ def supervisor():
         # Handle unexpected errors gracefully
         print("Exception:", e)
         return jsonify({"error": str(e)}), 500
+    
+
+
 
 if __name__ == "__main__":
     # Run the Flask app on port 5000
