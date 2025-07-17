@@ -594,60 +594,18 @@ function App() {
     } else {
       alert('Please select a valid image file');
     }
-  };
+ };
 
 //Suggetions for the bot//
-const getFourAgentSuggestions = () => {
-  const agentSuggestions = {
-    medicine: [
-      "💊 What are the side effects of this medication?",
-      "💊 Can you explain drug interactions for diabetes medications?",
-      "💊 What's the proper dosage for hypertension treatment?",
-      "💊 How does this drug's mechanism of action work?",
-      "💊 What are the contraindications for this medication?"
-    ],
-    compliance: [
-      "📋 What are the current FDA regulations for clinical trials?",
-      "📋 How do I ensure GMP compliance in manufacturing?",
-      "📋 What documentation is required for regulatory submissions?",
-      "📋 What are the latest regulatory updates?",
-      "📋 How do I handle adverse event reporting?"
-    ],
-    regulation: [
-      "⚖️ What are the latest pharmaceutical regulations?",
-      "⚖️ How do I handle regulatory compliance violations?",
-      "⚖️ What are the requirements for drug labeling?",
-      "⚖️ How do I navigate international regulatory requirements?",
-      "⚖️ What are the penalty guidelines for regulatory violations?"
-    ],
-    traveller: [
-      "✈️ What are the travel requirements for pharmaceutical conferences?",
-      "✈️ How do I book corporate travel to international meetings?",
-      "✈️ What's the expense policy for client visits?",
-      "✈️ Where can I find approved hotels for business travel?",
-      "✈️ What documents do I need for international travel?"
-    ]
-  };
+// Replace getFourAgentSuggestions() with static suggestions
+const [suggestions] = useState([
+  "💊 What are the side effects of this medication?",
+  "📋 What are the current FDA regulations for clinical trials?",
+  "⚖️ What are the latest pharmaceutical regulations?",
+  "✈️ What are the travel requirements for pharmaceutical conferences?",
+  "💊 Can you explain drug interactions for diabetes medications?"
+]);
 
-  // Get one random suggestion from each of the four agents, plus one extra
-  const medicineQuestion = agentSuggestions.medicine[Math.floor(Math.random() * agentSuggestions.medicine.length)];
-  const complianceQuestion = agentSuggestions.compliance[Math.floor(Math.random() * agentSuggestions.compliance.length)];
-  const regulationQuestion = agentSuggestions.regulation[Math.floor(Math.random() * agentSuggestions.regulation.length)];
-  const travellerQuestion = agentSuggestions.traveller[Math.floor(Math.random() * agentSuggestions.traveller.length)];
-  
-  // Get one more random question from any agent
-  const allQuestions = [
-    ...agentSuggestions.medicine,
-    ...agentSuggestions.compliance,
-    ...agentSuggestions.regulation,
-    ...agentSuggestions.traveller
-  ];
-  const extraQuestion = allQuestions[Math.floor(Math.random() * allQuestions.length)];
-  
-  return [medicineQuestion, complianceQuestion, regulationQuestion, travellerQuestion, extraQuestion];
-};
-
-const suggestions = getFourAgentSuggestions();
 //This function handle the send button and the connection with the backend and the timestamp of the message//
   const handleSend = async () => {
     if (!input.trim()) return;
