@@ -1,41 +1,282 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
+// Format agent responses to be more organized
+const formatAgentResponse = (rawText) => {
+  // Remove excessive asterisks and clean up markdown
+  let formatted = rawText
+    // Remove multiple consecutive asterisks
+    .replace(/\*{3,}/g, '')
+    // Convert **bold** to a marker we can style later
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // Convert single *italic* to emphasis
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    // Convert markdown headers to HTML headings
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    // Convert #### and more to h4
+    .replace(/^#{4,} (.+)$/gm, '<h4>$1</h4>')
+    // Clean up bullet points - normalize different bullet styles
+    .replace(/^\s*[\*\-\+•]\s+/gm, '• ')
+    // Clean up numbered lists
+    .replace(/^\s*(\d+)\.\s+/gm, '$1. ')
+    // Enhanced formatting for better readability
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    // Format headings (lines ending with colon) - but not if already formatted
+    .replace(/^([A-Z][^:\n<]*:)\s*$/gm, (match, text) => {
+      if (text.includes('<')) return match; // Skip if already has HTML tags
+      return `<h4>${text}</h4>`;
+    })
+    // Format subheadings (capitalize first letter after bullet or number)
+    .replace(/(^• |^\d+\. )([a-z])/gm, (match, prefix, letter) => prefix + letter.toUpperCase())
+    .trim();
+
+  return formatted;
+};
+
+// Extract agent information from response
+const extractAgentFromResponse = (responseText) => {
+  // Look for pattern like [Agent Name] at the beginning
+  const agentMatch = responseText.match(/^\[([^\]]+)\]/);
+  
+  if (agentMatch) {
+    const agentName = agentMatch[1].trim().toLowerCase();
+    const cleanText = responseText.replace(/^\[([^\]]+)\]\s*/, '').trim();
+    
+    // Determine agent type based on specific agent names
+    let agentType = 'general';
+    let agentIcon = '🤖';
+    let displayName = agentMatch[1].trim();
+    
+    if (agentName.includes('medicine') || agentName.includes('medical')) {
+      agentType = 'medicine';
+      agentIcon = '💊';
+      displayName = 'Medicine Bot';
+    } else if (agentName.includes('compliance') || agentName.includes('quality')) {
+      agentType = 'compliance';
+      agentIcon = '📋';
+      displayName = 'Compliance Bot';
+    } else if (agentName.includes('regulation') || agentName.includes('regulatory') || agentName.includes('legal')) {
+      agentType = 'regulation';
+      agentIcon = '⚖️';
+      displayName = 'Regulation Bot';
+    } else if (agentName.includes('traveller') || agentName.includes('travel') || agentName.includes('trip')) {
+      agentType = 'traveller';
+      agentIcon = '✈️';
+      displayName = 'Traveller Bot';
+    }
+    
+    return {
+      agent: {
+        name: displayName,
+        type: agentType,
+        icon: agentIcon,
+        id: agentType
+      },
+      text: cleanText
+    };
+  }
+  
+  // If no bracket found, return as general agent
+  return {
+    agent: {
+      name: "Assistant",
+      type: "general",
+      icon: "🤖",
+      id: "general"
+    },
+    text: responseText
+  };
+};
+
+// Enhanced render formatted message with agent header
+const renderFormattedMessage = (text, showAgentHeader = true) => {
+  const { agent, text: cleanText } = extractAgentFromResponse(text);
+  const formatted = formatAgentResponse(cleanText);
+  
+  // Split by double line breaks for paragraphs
+  const sections = formatted.split('\n\n').filter(section => section.trim());
+  
+  const messageContent = sections.map((section, index) => {
+    const trimmedSection = section.trim();
+    
+    // Check if it's a heading (h4 tags)
+    if (trimmedSection.includes('<h4>') && trimmedSection.includes('</h4>')) {
+      return (
+        <div key={index} className="message-heading">
+          <span dangerouslySetInnerHTML={{ __html: trimmedSection }} />
+        </div>
+      );
+    }
+    
+    // Check if it's a bullet list
+    if (trimmedSection.includes('•')) {
+      const lines = trimmedSection.split('\n');
+      const listItems = [];
+      let currentItem = '';
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('•')) {
+          if (currentItem) {
+            listItems.push(currentItem);
+          }
+          currentItem = trimmedLine.substring(1).trim();
+        } else if (trimmedLine && currentItem) {
+          currentItem += ' ' + trimmedLine;
+        }
+      });
+      
+      if (currentItem) {
+        listItems.push(currentItem);
+      }
+      
+      return (
+        <div key={index} className="message-list">
+          {listItems.map((item, itemIndex) => (
+            <div key={itemIndex} className="list-item">
+              <span className="bullet">•</span>
+              <span className="item-content" dangerouslySetInnerHTML={{ __html: item }} />
+            </div>
+          ))}
+
+        </div>
+      );
+    }
+    
+    // Check if it's a numbered list
+    if (/^\d+\.\s/.test(trimmedSection)) {
+      const lines = trimmedSection.split('\n');
+      const listItems = [];
+      let currentItem = '';
+      let currentNumber = '';
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        const numberMatch = trimmedLine.match(/^(\d+)\.\s(.+)/);
+        
+        if (numberMatch) {
+          if (currentItem) {
+            listItems.push({ number: currentNumber, content: currentItem });
+          }
+          currentNumber = numberMatch[1];
+          currentItem = numberMatch[2];
+        } else if (trimmedLine && currentItem) {
+          currentItem += ' ' + trimmedLine;
+        }
+      });
+      
+      if (currentItem) {
+        listItems.push({ number: currentNumber, content: currentItem });
+      }
+      
+      return (
+        <div key={index} className="message-numbered-list">
+          {listItems.map((item, itemIndex) => (
+            <div key={itemIndex} className="numbered-item">
+              <span className="number">{item.number}.</span>
+              <span className="item-content" dangerouslySetInnerHTML={{ __html: item.content }} />
+            </div>
+          ))}
+
+        </div>
+      );
+    }
+    
+    // Regular paragraph with enhanced formatting
+    return (
+      <div key={index} className="message-paragraph">
+        <span dangerouslySetInnerHTML={{ __html: trimmedSection }} />
+      </div>
+    );
+  });
+
+  // Return with agent header if requested
+  if (showAgentHeader && agent.name !== "Assistant") {
+    return (
+      <div className="agent-message-container">
+        <div className={`agent-header agent-${agent.type}`}>
+          <span className="agent-icon">{agent.icon}</span>
+          <span className="agent-name">{agent.name}</span>
+          <span className="agent-badge">{agent.type}</span>
+        </div>
+        <div className="agent-message-content">
+          {messageContent}
+        </div>
+      </div>
+    );
+  }
+
+  return messageContent;
+};
+
+// Add this function to check session validity
+const isSessionValid = (userData) => {
+  if (!userData || !userData.loginTime) return false;
+  
+  const now = new Date().getTime();
+  const sessionDuration = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  
+  return (now - userData.loginTime) < sessionDuration;
+};
+
 //Functions and const for the app//
 function App() {
-  const [chats, setChats] = useState(["Chat 1"]); // Initial chat
-  const [activeChat, setActiveChat] = useState(0); // Active chat index
-  const [chatMessages, setChatMessages] = useState({ // Object to hold messages for each chat
-    0: [{ text: "Hello! How can I help you today?", sender: "bot" }] // Initial message in the first chat
+  const [chats, setChats] = useState(["Chat 1"]);
+  const [activeChat, setActiveChat] = useState(0);
+  const [chatMessages, setChatMessages] = useState({
+    0: [{ text: "Hello! How can I help you today?", sender: "bot" }]
   });
-  const [input, setInput] = useState(""); // Input field state
-  const [hasStarted, setHasStarted] = useState(false); // Flag to check if the chat has started
-  const [darkMode, setDarkMode] = useState(false); // Dark mode state
-  const [isBotTyping, setIsBotTyping] = useState(false);// Bot typing indicator state
-  const [showSuggestions, setShowSuggestions] = useState(true);// Suggestions bar visibility state
-  const [showProfile, setShowProfile] = useState(false);  // Profile modal visibility state
-  const [showSettings, setShowSettings] = useState(false);// Settings modal visibility state
+  const [input, setInput] = useState("");
+  const [hasStarted, setHasStarted] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   
   // Voice features state
   const [isListening, setIsListening] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
   const [speechVolume, setSpeechVolume] = useState(1);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const recognitionRef = useRef(null);
   const synthRef = useRef(null);
+  
+  // USER STATE - Always start with no user
   const [user, setUser] = useState(() => {
-    // Try to load user from localStorage
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
+    // Try to load user from localStorage on app initialization
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      
+      // Check if session is still valid
+      if (isSessionValid(userData)) {
+        return userData;
+      } else {
+        // Session expired, clear localStorage
+        localStorage.removeItem("user");
+        return null;
+      }
+    }
+    return null;
   });
-  const [showLogin, setShowLogin] = useState(!user);
+  const [showLogin, setShowLogin] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return !savedUser; // Only show login if no saved user
+  });
   const [showEditProfile, setShowEditProfile] = useState(false);
-
-  const [fontSize, setFontSize] = useState('1rem');// Font size state
-
+  const [fontSize, setFontSize] = useState('1rem');
+  
   // Login form states
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [loginForm, setLoginForm] = useState({ 
+    email: '', 
+    password: '', 
+    rememberMe: true // Add this
+  });
   const [editProfileForm, setEditProfileForm] = useState({
     firstName: '',
     lastName: '',
@@ -43,6 +284,15 @@ function App() {
     avatar: null
   });
   const [authError, setAuthError] = useState('');
+
+  // Add refs for auto-scrolling
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+
+  // Update showLogin when user changes
+  useEffect(() => {
+    setShowLogin(!user);
+  }, [user]);
 
   // Initialize Speech Recognition and Synthesis
   useEffect(() => {
@@ -247,22 +497,29 @@ function App() {
       avatar: null,
       joinDate: new Date().toLocaleDateString(),
       department: 'Eli Lilly and Company',
-      isLillyEmployee: true
+      isLillyEmployee: true,
+      loginTime: new Date().getTime()
     };
     
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+    
+    // Only save to localStorage if "Remember me" is checked
+    if (loginForm.rememberMe) {
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
+    
     setShowLogin(false);
-    setLoginForm({ email: '', password: '' });
+    setLoginForm({ email: '', password: '', rememberMe: true });
     setAuthError('');
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem("user");
+    localStorage.removeItem("user"); // Clear from localStorage
     setShowLogin(true);
     setShowProfile(false);
     setAuthError('');
+    
     // Reset chat data on logout
     setChats(["Chat 1"]);
     setActiveChat(0);
@@ -340,14 +597,57 @@ function App() {
   };
 
 //Suggetions for the bot//
+const getFourAgentSuggestions = () => {
+  const agentSuggestions = {
+    medicine: [
+      "💊 What are the side effects of this medication?",
+      "💊 Can you explain drug interactions for diabetes medications?",
+      "💊 What's the proper dosage for hypertension treatment?",
+      "💊 How does this drug's mechanism of action work?",
+      "💊 What are the contraindications for this medication?"
+    ],
+    compliance: [
+      "📋 What are the current FDA regulations for clinical trials?",
+      "📋 How do I ensure GMP compliance in manufacturing?",
+      "📋 What documentation is required for regulatory submissions?",
+      "📋 What are the latest regulatory updates?",
+      "📋 How do I handle adverse event reporting?"
+    ],
+    regulation: [
+      "⚖️ What are the latest pharmaceutical regulations?",
+      "⚖️ How do I handle regulatory compliance violations?",
+      "⚖️ What are the requirements for drug labeling?",
+      "⚖️ How do I navigate international regulatory requirements?",
+      "⚖️ What are the penalty guidelines for regulatory violations?"
+    ],
+    traveller: [
+      "✈️ What are the travel requirements for pharmaceutical conferences?",
+      "✈️ How do I book corporate travel to international meetings?",
+      "✈️ What's the expense policy for client visits?",
+      "✈️ Where can I find approved hotels for business travel?",
+      "✈️ What documents do I need for international travel?"
+    ]
+  };
 
-  const suggestions = [
-    "What are the best ways to travel to Indianapolis?",
-    "Can you recommend hotels in Indianapolis?",
-    "What is the weather like in Indianapolis this week?",
-    "Are there any must-see attractions in Indianapolis?",
-    "How do I get from the airport to downtown Indianapolis?"
+  // Get one random suggestion from each of the four agents, plus one extra
+  const medicineQuestion = agentSuggestions.medicine[Math.floor(Math.random() * agentSuggestions.medicine.length)];
+  const complianceQuestion = agentSuggestions.compliance[Math.floor(Math.random() * agentSuggestions.compliance.length)];
+  const regulationQuestion = agentSuggestions.regulation[Math.floor(Math.random() * agentSuggestions.regulation.length)];
+  const travellerQuestion = agentSuggestions.traveller[Math.floor(Math.random() * agentSuggestions.traveller.length)];
+  
+  // Get one more random question from any agent
+  const allQuestions = [
+    ...agentSuggestions.medicine,
+    ...agentSuggestions.compliance,
+    ...agentSuggestions.regulation,
+    ...agentSuggestions.traveller
   ];
+  const extraQuestion = allQuestions[Math.floor(Math.random() * allQuestions.length)];
+  
+  return [medicineQuestion, complianceQuestion, regulationQuestion, travellerQuestion, extraQuestion];
+};
+
+const suggestions = getFourAgentSuggestions();
 //This function handle the send button and the connection with the backend and the timestamp of the message//
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -453,7 +753,7 @@ function App() {
               style={{ cursor: "pointer" }}
             >
               {chat}
-            </li>
+            </li> 
           ))}
         </ul>
       </aside>
@@ -531,7 +831,12 @@ function App() {
             ? messages.map((msg, idx) => (
                 <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: msg.sender === "user" ? "flex-end" : "flex-start" }}>
                   <div className={`message ${msg.sender}`}>
-                    <span>{msg.text}</span>
+                    <div className="message-content">
+                      {msg.sender === "bot" ? 
+                        renderFormattedMessage(msg.text, true) : 
+                        <span className="message-text">{msg.text}</span>
+                      }
+                    </div>
                   </div>
                   {msg.time && (
                     <span className="msg-time">{msg.time}</span>
@@ -892,6 +1197,22 @@ function App() {
                   minLength="8"
                 />
               </div>
+              
+              {/* Modern Remember Me Toggle */}
+              <div className="remember-me-container">
+                <label className="remember-me-label" htmlFor="rememberMe">
+                  <span className="remember-me-text">Remember me</span>
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    className="remember-me-checkbox"
+                    checked={loginForm.rememberMe}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, rememberMe: e.target.checked }))}
+                  />
+                  <span className="toggle-switch"></span>
+                </label>
+              </div>
+              
               <div className="form-actions">
                 <button type="submit" className="login-btn">Sign In</button>
                 {user && (
@@ -985,3 +1306,22 @@ function App() {
 }
 
 export default App;
+
+// Encrypt sensitive messages
+const encryptMessage = async (text) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const key = await window.crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  );
+  
+  const encrypted = await window.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: new Uint8Array(12) },
+    key,
+    data
+  );
+  
+  return encrypted;
+};

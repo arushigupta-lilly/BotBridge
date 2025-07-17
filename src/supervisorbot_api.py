@@ -6,7 +6,7 @@ and returns the model's response.
 
 Author: Daniella Melero
 Date: 2025-06-18
-"""
+""" 
 
 from flask import Flask, request, jsonify  # For building the API and handling requests/responses
 from light_client import LIGHTClient       # Lilly's Light Client for Cortex API access

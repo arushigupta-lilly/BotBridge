@@ -557,6 +557,19 @@ body {
   color: #fff;
 }
 
+/* Regulation bot suggestion styling */
+.suggestion-regulation {
+  border-left-color: #8B4513;
+}
+
+.suggestion-regulation:hover {
+  background: rgba(139, 69, 19, 0.1);
+}
+
+.dark-mode .suggestion-regulation:hover {
+  background: rgba(139, 69, 19, 0.2);
+}
+
 .msg-time {
   font-size: inherit;
   color: var(--neutral-600);
@@ -1304,5 +1317,357 @@ body {
     border-color: var(--primary-500);
     background: var(--primary-100);
   }
+}
+
+/* Message content formatting */
+.message-content {
+  width: 100%;
+}
+
+.message-paragraph {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.message-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Enhanced message formatting styles */
+.message-heading h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--primary-500);
+  border-bottom: 2px solid var(--primary-200);
+  padding-bottom: 4px;
+}
+
+.dark-mode .message-heading h4 {
+  color: var(--primary-400);
+  border-bottom-color: var(--primary-600);
+}
+
+.message-paragraph {
+  margin: 12px 0;
+  line-height: 1.6;
+}
+
+.message-paragraph strong {
+  font-weight: 600;
+  color: var(--primary-600);
+}
+
+.dark-mode .message-paragraph strong {
+  color: var(--primary-400);
+}
+
+.message-paragraph em {
+  font-style: italic;
+  color: var(--neutral-700);
+}
+
+.dark-mode .message-paragraph em {
+  color: var(--neutral-400);
+}
+
+/* Enhanced list styling */
+.message-list {
+  margin: 12px 0;
+  padding-left: 8px;
+}
+
+.list-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.bullet {
+  color: var(--primary-500);
+  font-weight: bold;
+  margin-right: 8px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.dark-mode .bullet {
+  color: var(--primary-400);
+}
+
+.item-content strong {
+  font-weight: 600;
+  color: var(--primary-600);
+}
+
+.dark-mode .item-content strong {
+  color: var(--primary-400);
+}
+
+/* Enhanced numbered list styling */
+.message-numbered-list {
+  margin: 12px 0;
+  padding-left: 8px;
+}
+
+.numbered-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.number {
+  color: var(--primary-500);
+  font-weight: bold;
+  margin-right: 8px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  min-width: 20px;
+}
+
+.dark-mode .number {
+  color: var(--primary-400);
+}
+
+/* Agent-specific message styling */
+.agent-message-container {
+  width: 100%;
+}
+
+.agent-message-content {
+  padding: 16px;
+  background: var(--neutral-50);
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid var(--neutral-200);
+}
+
+.dark-mode .agent-message-content {
+  background: var(--neutral-800);
+  border-color: var(--neutral-700);
+}
+
+/* Enhanced agent header styling */
+.agent-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px 8px 0 0;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.agent-icon {
+  font-size: 1.4em;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.agent-name {
+  font-weight: 600;
+  font-size: 1.05em;
+}
+
+.agent-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: auto;
+}
+
+/* Regulation Bot specific enhanced styles */
+.agent-regulation {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  color: white;
+  border-left: 4px solid #D2691E;
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.3);
+}
+
+.agent-regulation .agent-icon {
+  color: #FFD700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.agent-regulation .agent-badge {
+  background: rgba(255, 215, 0, 0.2);
+  color: #FFD700;
+  border: 1px solid #FFD700;
+}
+
+.agent-regulation .agent-message-content {
+  border-left: 4px solid #D2691E;
+}
+
+/* Dark mode regulation bot */
+.dark-mode .agent-regulation {
+  background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
+  border-left-color: #CD853F;
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.4);
+}
+
+.dark-mode .agent-regulation .agent-icon {
+  color: #F0E68C;
+}
+
+.dark-mode .agent-regulation .agent-badge {
+  background: rgba(240, 230, 140, 0.2);
+  color: #F0E68C;
+  border-color: #F0E68C;
+}
+
+.dark-mode .agent-regulation .agent-message-content {
+  border-left-color: #CD853F;
+}
+
+/* Hover effects for regulation bot */
+.agent-regulation:hover {
+  background: linear-gradient(135deg, #A0522D 0%, #CD853F 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.4);
+}
+
+.dark-mode .agent-regulation:hover {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.5);
+}
+
+/* Enhanced typography for all agents */
+.agent-message-content h4 {
+  margin: 0 0 12px 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--primary-500);
+  border-bottom: 2px solid var(--primary-200);
+  padding-bottom: 6px;
+}
+
+.dark-mode .agent-message-content h4 {
+  color: var(--primary-400);
+  border-bottom-color: var(--primary-600);
+}
+
+.agent-message-content strong {
+  font-weight: 600;
+  color: var(--primary-600);
+  background: rgba(232, 75, 66, 0.1);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.dark-mode .agent-message-content strong {
+  color: var(--primary-400);
+  background: rgba(232, 75, 66, 0.2);
+}
+
+.agent-message-content em {
+  font-style: italic;
+  color: var(--neutral-700);
+  background: rgba(71, 154, 237, 0.1);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+.dark-mode .agent-message-content em {
+  color: var(--neutral-400);
+  background: rgba(71, 154, 237, 0.2);
+}
+
+/* Code-like formatting for technical terms */
+.agent-message-content code {
+  background: var(--neutral-200);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.dark-mode .agent-message-content code {
+  background: var(--neutral-700);
+  color: var(--neutral-300);
+}
+
+/* Enhanced header styles for agent responses */
+.agent-message-content h1 {
+  margin: 16px 0 12px 0;
+  font-size: 1.4em;
+  font-weight: 700;
+  color: var(--primary-600);
+  border-bottom: 3px solid var(--primary-300);
+  padding-bottom: 8px;
+}
+
+.dark-mode .agent-message-content h1 {
+  color: var(--primary-300);
+  border-bottom-color: var(--primary-500);
+}
+
+.agent-message-content h2 {
+  margin: 14px 0 10px 0;
+  font-size: 1.3em;
+  font-weight: 650;
+  color: var(--primary-600);
+  border-bottom: 2px solid var(--primary-300);
+  padding-bottom: 6px;
+}
+
+.dark-mode .agent-message-content h2 {
+  color: var(--primary-300);
+  border-bottom-color: var(--primary-500);
+}
+
+.agent-message-content h3 {
+  margin: 12px 0 8px 0;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--primary-500);
+  border-bottom: 2px solid var(--primary-200);
+  padding-bottom: 4px;
+}
+
+.dark-mode .agent-message-content h3 {
+  color: var(--primary-400);
+  border-bottom-color: var(--primary-600);
+}
+
+.agent-message-content h4 {
+  margin: 10px 0 8px 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--primary-500);
+  border-bottom: 1px solid var(--primary-200);
+  padding-bottom: 3px;
+}
+
+.dark-mode .agent-message-content h4 {
+  color: var(--primary-400);
+  border-bottom-color: var(--primary-600);
+}
+
+/* Remove any residual # symbols that might appear */
+.agent-message-content {
+  /* This will hide any standalone # symbols */
+}
+
+.agent-message-content::before {
+  content: none;
+}
+
+/* Ensure proper spacing between headers and content */
+.agent-message-content h1 + p,
+.agent-message-content h2 + p,
+.agent-message-content h3 + p,
+.agent-message-content h4 + p {
+  margin-top: 8px;
+}
+
+/* Style for any remaining hash symbols that might appear */
+.agent-message-content .hash-symbol {
+  display: none;
 }
 
