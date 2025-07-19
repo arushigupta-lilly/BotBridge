@@ -21,7 +21,8 @@ const formatAgentResponse = (rawText) => {
     .replace(/^\s*[\*\-\+•]\s+/gm, '• ')
     // Clean up numbered lists
     .replace(/^\s*(\d+)\.\s+/gm, '$1. ')
-    // Enhanced formatting for better readability
+    // Ensure numbered items are on separate lines
+.replace(/(\d+\.\s.*?)(?=\s*\d+\.\s|$)/g, '$1\n')
     .replace(/\n{3,}/g, '\n\n')
     .replace(/[ \t]{2,}/g, ' ')
     // Format headings (lines ending with colon) - but not if already formatted
@@ -233,6 +234,8 @@ function App() {
   const [hasStarted, setHasStarted] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const [typingStage, setTypingStage] = useState(1); // 1: first message, 2: second message
+const typingStageTimeoutRef = useRef(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -599,11 +602,11 @@ function App() {
 //Suggetions for the bot//
 // Replace getFourAgentSuggestions() with static suggestions
 const [suggestions] = useState([
-  "💊 What are the side effects of this medication?",
-  "📋 What are the current FDA regulations for clinical trials?",
-  "⚖️ What are the latest pharmaceutical regulations?",
-  "✈️ What are the travel requirements for pharmaceutical conferences?",
-  "💊 Can you explain drug interactions for diabetes medications?"
+ "What is mounjaro?",
+  "How should field-reps interact with HCPs?",
+  "What are the latest FDA pharmaceutical regulations?",
+  "What can I do in Indy if I like history?",
+  "What are updated medicaid and medicare regulations?",
 ]);
 
 //This function handle the send button and the connection with the backend and the timestamp of the message//
@@ -622,6 +625,12 @@ const [suggestions] = useState([
     setInput("");
     setHasStarted(true);
     setIsBotTyping(true);
+    setTypingStage(1);
+    if (typingStageTimeoutRef.current) clearTimeout(typingStageTimeoutRef.current);
+typingStageTimeoutRef.current = setTimeout(() => {
+  setTypingStage(2);
+}, 10000); 
+
 //* This is where the bot's response is fetched from the backend *//
     try {
       const response = await fetch("http://localhost:5000/api/supervisor-bot", {
@@ -662,6 +671,11 @@ const [suggestions] = useState([
       }
     }
     setIsBotTyping(false);
+    setTypingStage(1);
+if (typingStageTimeoutRef.current) {
+  clearTimeout(typingStageTimeoutRef.current);
+  typingStageTimeoutRef.current = null;
+}
   };
 
   const handleInputKeyDown = (e) => {
@@ -803,13 +817,18 @@ const [suggestions] = useState([
               ))
             : null}
             
-          {isBotTyping && (
-            <div className="message bot">
-              <span className="typing-indicator">
-                <span></span><span></span><span></span>
-              </span>
-            </div>
-          )}
+        {isBotTyping && (
+  <div className="message bot">
+    <span className="loading-indicator">
+      {typingStage === 1
+        ? "Sending query to the supervisor"
+        : "Picking a specialized agent to answer"}
+      <span className="loading-dots">
+        <span></span><span></span><span></span>
+      </span>
+    </span>
+  </div>
+)}
         </div>
         {!hasStarted ? (//Welcome message and input bar for new chats//
           <div className="input-bar-center-group">
