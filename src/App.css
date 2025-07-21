@@ -1701,4 +1701,102 @@ body {
   40% { transform: translateY(-6px); }
 }
 
+/* Feedback buttons styles */
+.feedback-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--neutral-200);
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.feedback-buttons:hover {
+  opacity: 1;
+}
+
+.like-btn, .dislike-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 16px;
+  background: var(--neutral-100);
+  color: var(--neutral-700);
+  font-size: 0.85em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  user-select: none;
+}
+
+.like-btn:hover {
+  background: #d4f6d4; /* Light green background */
+  border-color: #28a745; /* Green border */
+  color: #28a745; /* Green text */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+.dislike-btn:hover {
+  background: #f8d7da; /* Light red background */
+  border-color: #dc3545; /* Red border */
+  color: #dc3545; /* Red text */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+}
+
+.like-btn.active {
+  background: #28a745; /* Green background when active */
+  border-color: #1e7e34;
+  color: white;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.dislike-btn.active {
+  background: #dc3545; /* Red background when active */
+  border-color: #c82333;
+  color: white;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Dark mode feedback buttons */
+.dark-mode .feedback-buttons {
+  border-top-color: var(--neutral-600);
+}
+
+.dark-mode .like-btn, 
+.dark-mode .dislike-btn {
+  background: var(--neutral-700);
+  border-color: var(--neutral-600);
+  color: var(--neutral-300);
+}
+
+.dark-mode .like-btn:hover {
+  background: #1a4d1a; /* Dark green for dark mode */
+  border-color: #28a745;
+  color: #4ade80; /* Light green text */
+}
+
+.dark-mode .dislike-btn:hover {
+  background: #4d1a1a; /* Dark red for dark mode */
+  border-color: #dc3545;
+  color: #f87171; /* Light red text */
+}
+
+.dark-mode .like-btn.active {
+  background: #28a745;
+  border-color: #34ce57;
+  color: white;
+}
+
+.dark-mode .dislike-btn.active {
+  background: #dc3545;
+  border-color: #e55a5a;
+  color: white;
+}
+
 

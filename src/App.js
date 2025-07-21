@@ -92,8 +92,8 @@ const extractAgentFromResponse = (responseText) => {
   };
 };
 
-// Enhanced render formatted message with agent header
-const renderFormattedMessage = (text, showAgentHeader = true) => {
+// Enhanced render formatted message with feedback buttons
+const renderFormattedMessage = (text, showAgentHeader = true, messageData = {}) => {
   const { agent, text: cleanText } = extractAgentFromResponse(text);
   const formatted = formatAgentResponse(cleanText);
   
@@ -142,7 +142,6 @@ const renderFormattedMessage = (text, showAgentHeader = true) => {
               <span className="item-content" dangerouslySetInnerHTML={{ __html: item }} />
             </div>
           ))}
-
         </div>
       );
     }
@@ -181,7 +180,6 @@ const renderFormattedMessage = (text, showAgentHeader = true) => {
               <span className="item-content" dangerouslySetInnerHTML={{ __html: item.content }} />
             </div>
           ))}
-
         </div>
       );
     }
@@ -194,6 +192,34 @@ const renderFormattedMessage = (text, showAgentHeader = true) => {
     );
   });
 
+  // Function to handle feedback button clicks
+  const handleFeedbackClick = (feedbackType) => {
+    const message = feedbackType === 'like' 
+      ? "Thanks for your positive feedback! 👍\n\nThis feature helps us improve the chatbot's responses. Your feedback is valuable in training our AI to provide better assistance."
+      : "Thanks for your feedback! 👎\n\nWe're sorry this response wasn't helpful. Your feedback helps us improve the chatbot's responses and provide better assistance in the future.";
+    
+    alert(message);
+  };
+
+  // Show feedback buttons for all bot messages EXCEPT the initial greeting
+  const isInitialGreeting = text === "Hello! How can I help you today?";
+  const feedbackButtons = !isInitialGreeting && (
+    <div className="feedback-buttons">
+      <button 
+        className="like-btn"
+        onClick={() => handleFeedbackClick('like')}
+      >
+        👍 Like
+      </button>
+      <button 
+        className="dislike-btn"
+        onClick={() => handleFeedbackClick('dislike')}
+      >
+        👎 Dislike
+      </button>
+    </div>
+  );
+
   // Return with agent header if requested
   if (showAgentHeader && agent.name !== "Assistant") {
     return (
@@ -205,12 +231,18 @@ const renderFormattedMessage = (text, showAgentHeader = true) => {
         </div>
         <div className="agent-message-content">
           {messageContent}
+          {feedbackButtons}
         </div>
       </div>
     );
   }
 
-  return messageContent;
+  return (
+    <div>
+      {messageContent}
+      {feedbackButtons}
+    </div>
+  );
 };
 
 // Add this function to check session validity
