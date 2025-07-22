@@ -1800,3 +1800,28 @@ body {
 }
 
 
+.section-header {
+  color: var(--primary-600);
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+
+.numbered-item {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.evaluation-score {
+  background: var(--neutral-100);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+  display: inline-block;
+}
+
+.message-paragraph strong {
+  font-weight: 600;
+  color: var(--primary-700);
+}

@@ -22,9 +22,11 @@ const formatAgentResponse = (rawText) => {
     // Clean up numbered lists
     .replace(/^\s*(\d+)\.\s+/gm, '$1. ')
     // Ensure numbered items are on separate lines
-.replace(/(\d+\.\s.*?)(?=\s*\d+\.\s|$)/g, '$1\n')
+    .replace(/(\d+)\.\s+/g, '\n<strong class="list-number">$1.</strong> ')
     .replace(/\n{3,}/g, '\n\n')
     .replace(/[ \t]{2,}/g, ' ')
+    .replace(/(Accuracy:|Completeness:)/g, '<strong>$1</strong>')
+    .replace(/(<strong>(?:Accuracy:|Completeness:)<\/strong>\s*)([01](?:\.\d+)?)/g, '$1<strong>$2</strong>')
     // Format headings (lines ending with colon) - but not if already formatted
     .replace(/^([A-Z][^:\n<]*:)\s*$/gm, (match, text) => {
       if (text.includes('<')) return match; // Skip if already has HTML tags
@@ -59,10 +61,10 @@ const extractAgentFromResponse = (responseText) => {
       agentType = 'compliance';
       agentIcon = '📋';
       displayName = 'Compliance Bot';
-    } else if (agentName.includes('regulation') || agentName.includes('regulatory') || agentName.includes('legal')) {
-      agentType = 'regulation';
+    } else if (agentName.includes('web') || agentName.includes('search') || agentName.includes('scrape')) {
+      agentType = 'websearch&scrape';
       agentIcon = '⚖️';
-      displayName = 'Regulation Bot';
+      displayName = 'WebSearch&Scrape Bot';
     } else if (agentName.includes('traveller') || agentName.includes('travel') || agentName.includes('trip')) {
       agentType = 'traveller';
       agentIcon = '✈️';
@@ -634,10 +636,10 @@ const typingStageTimeoutRef = useRef(null);
 //Suggetions for the bot//
 // Replace getFourAgentSuggestions() with static suggestions
 const [suggestions] = useState([
- "What is mounjaro?",
+ "What are the side effects and dosing guidelines for Mounjaro?",
   "How should field-reps interact with HCPs?",
-  "What are the latest FDA pharmaceutical regulations?",
-  "What can I do in Indy if I like history?",
+  "Where can I find the prescribing information for Trulicity?",
+  "Where can I get good indian food after work?",
   "What are updated medicaid and medicare regulations?",
 ]);
 
