@@ -1,45 +1,38 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
-// Format agent responses to be more organized
 const formatAgentResponse = (rawText) => {
-  // Remove excessive asterisks and clean up markdown
   let formatted = rawText
-    // Remove multiple consecutive asterisks
-    .replace(/\*{3,}/g, '')
-    // Convert **bold** to a marker we can style later
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    // Convert single *italic* to emphasis
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    // Convert markdown headers to HTML headings
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    // Convert #### and more to h4
     .replace(/^#{4,} (.+)$/gm, '<h4>$1</h4>')
-    // Clean up bullet points - normalize different bullet styles
-    .replace(/^\s*[\*\-\+•]\s+/gm, '• ')
-    // Clean up numbered lists
     .replace(/^\s*(\d+)\.\s+/gm, '$1. ')
-    // Ensure numbered items are on separate lines
     .replace(/(\d+)\.\s+/g, '\n<strong class="list-number">$1.</strong> ')
     .replace(/\n{3,}/g, '\n\n')
-    .replace(/[ \t]{2,}/g, ' ')
-    .replace(/(Accuracy:|Completeness:)/g, '<strong>$1</strong>')
-    .replace(/(<strong>(?:Accuracy:|Completeness:)<\/strong>\s*)([01](?:\.\d+)?)/g, '$1<strong>$2</strong>')
-    // Format headings (lines ending with colon) - but not if already formatted
+    .replace(/[ \t]{2,}/g, ' ') 
+    .replace(/(Accuracy:|Completeness:)[\s\n\r]*([01](?:\.\d+)?)/gi, (match, label, score) => {     
+      let colorClass = '';
+      const num = parseFloat(score);
+      if (num <= 0.5) colorClass = 'score-low';
+      else if (num <= 0.8) colorClass = 'score-medium';
+      else colorClass = 'score-high';
+      return `<strong>${label}</strong> <span class="score-value ${colorClass}">${score}</span>`;
+    })
+    .replace(/(Relevancy Ranking\s*\(.*?\):)/i, '<span class="relevancy-header">$1</span>')
+
     .replace(/^([A-Z][^:\n<]*:)\s*$/gm, (match, text) => {
-      if (text.includes('<')) return match; // Skip if already has HTML tags
+      if (text.includes('<')) return match;
       return `<h4>${text}</h4>`;
     })
-    // Format subheadings (capitalize first letter after bullet or number)
     .replace(/(^• |^\d+\. )([a-z])/gm, (match, prefix, letter) => prefix + letter.toUpperCase())
     .trim();
 
   return formatted;
 };
 
-// Extract agent information from response
 const extractAgentFromResponse = (responseText) => {
   // Look for pattern like [Agent Name] at the beginning
   const agentMatch = responseText.match(/^\[([^\]]+)\]/);
@@ -61,13 +54,13 @@ const extractAgentFromResponse = (responseText) => {
       agentType = 'compliance';
       agentIcon = '📋';
       displayName = 'Compliance Bot';
-    } else if (agentName.includes('web') || agentName.includes('search') || agentName.includes('scrape')) {
+    } else if (agentName.includes('regulations') || agentName.includes('regulation') || agentName.includes('scrape')) {
       agentType = 'websearch&scrape';
-      agentIcon = '⚖️';
+      agentIcon = '🌐';
       displayName = 'WebSearch&Scrape Bot';
     } else if (agentName.includes('traveller') || agentName.includes('travel') || agentName.includes('trip')) {
       agentType = 'traveller';
-      agentIcon = '✈️';
+      agentIcon = '🔎';
       displayName = 'Traveller Bot';
     }
     
@@ -638,8 +631,8 @@ const typingStageTimeoutRef = useRef(null);
 const [suggestions] = useState([
  "What are the side effects and dosing guidelines for Mounjaro?",
   "How should field-reps interact with HCPs?",
+  "What are the latest FDA guidelines for diabetes medications?",
   "Where can I find the prescribing information for Trulicity?",
-  "Where can I get good indian food after work?",
   "What are updated medicaid and medicare regulations?",
 ]);
 

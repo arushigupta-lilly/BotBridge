@@ -1436,17 +1436,18 @@ body {
   width: 100%;
 }
 
-.agent-message-content {
-  padding: 16px;
-  background: var(--neutral-50);
-  border-radius: 8px;
-  margin-top: 8px;
-  border: 1px solid var(--neutral-200);
+.agent-message-content strong,
+.message-paragraph strong {
+  font-weight: 600;
+  color: var(--primary-600);
+  background: none;
+  padding: 0;
+  border-radius: 0;
 }
-
-.dark-mode .agent-message-content {
-  background: var(--neutral-800);
-  border-color: var(--neutral-700);
+.dark-mode .agent-message-content strong,
+.dark-mode .message-paragraph strong {
+  color: var(--primary-400);
+  background: none;
 }
 
 /* Enhanced agent header styling */
@@ -1824,4 +1825,41 @@ body {
 .message-paragraph strong {
   font-weight: 600;
   color: var(--primary-700);
+}
+
+.score-value {
+  font-weight: 700;
+  color: #111;           /* Black number */
+  background: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 2px;
+}
+
+.score-low {
+  background: rgba(220, 53, 69, 0.18);    /* semi-transparent red */
+}
+
+.score-medium {
+  background: rgba(255, 193, 7, 0.18);    /* semi-transparent yellow */
+}
+
+.score-high {
+  background: rgba(40, 167, 69, 0.18);    /* semi-transparent green */
+}
+
+/* Remove text-shadow if present */
+.score-low, .score-medium, .score-high {
+  text-shadow: none;
+}
+
+.relevancy-header {
+  background: var(--primary-200);   /* Soft red background */
+  color: var(--primary-600);        /* Strong red text */
+  font-weight: bold;
+  padding: 2px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+  border: 1px solid var(--primary-400);
 }
