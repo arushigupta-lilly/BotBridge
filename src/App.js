@@ -13,6 +13,8 @@ const formatAgentResponse = (rawText) => {
     .replace(/(\d+)\.\s+/g, '\n<strong class="list-number">$1.</strong> ')
     .replace(/\n{3,}/g, '\n\n')
     .replace(/[ \t]{2,}/g, ' ') 
+
+    
     .replace(/(Accuracy:|Completeness:)[\s\n\r]*([01](?:\.\d+)?)/gi, (match, label, score) => {     
       let colorClass = '';
       const num = parseFloat(score);
@@ -28,7 +30,7 @@ const formatAgentResponse = (rawText) => {
       return `<h4>${text}</h4>`;
     })
     .replace(/(^• |^\d+\. )([a-z])/gm, (match, prefix, letter) => prefix + letter.toUpperCase())
-    .trim();
+
 
   return formatted;
 };
@@ -46,7 +48,7 @@ const extractAgentFromResponse = (responseText) => {
     let agentIcon = '🤖';
     let displayName = agentMatch[1].trim();
     
-    if (agentName.includes('medicine') || agentName.includes('medical')) {
+    if (agentName.includes('medicine') || agentName.includes('medical') || agentName.includes('medbot') ){
       agentType = 'medicine';
       agentIcon = '💊';
       displayName = 'Medicine Bot';
@@ -629,11 +631,11 @@ const typingStageTimeoutRef = useRef(null);
 //Suggetions for the bot//
 // Replace getFourAgentSuggestions() with static suggestions
 const [suggestions] = useState([
- "What are the side effects and dosing guidelines for Mounjaro?",
+ "What are some FAQs about Mounjaro?",
   "How should field-reps interact with HCPs?",
   "What are the latest FDA guidelines for diabetes medications?",
   "Where can I find the prescribing information for Trulicity?",
-  "What are updated medicaid and medicare regulations?",
+  "What are the newest 2025 Medicaid guidelines?",
 ]);
 
 //This function handle the send button and the connection with the backend and the timestamp of the message//
