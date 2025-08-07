@@ -1,68 +1,140 @@
+/**
+ * BotBridge - Chatbot Interface Stylesheet
+ * =======================================
+ * 
+ * Comprehensive styling for the BotBridge multi-agent chatbot interface.
+ * Features Eli Lilly brand colors, accessibility support, dark mode,
+ * voice interaction indicators, and responsive design.
+ * 
+ * @author Daniella Melero
+ * @version 0.1.0
+ * @since 2025-06-18
+ * 
+ * Table of Contents:
+ * 1. Typography & Font Imports
+ * 2. CSS Custom Properties (Variables)
+ * 3. Base Layout & App Structure
+ * 4. Sidebar Navigation
+ * 5. Chat Container & Messages
+ * 6. Input Controls & Buttons
+ * 7. User Profile & Authentication
+ * 8. Voice Interaction Features
+ * 9. Agent-Specific Styling
+ * 10. Modal & Overlay Components
+ * 11. Dark Mode Overrides
+ * 12. Responsive Design
+ * 13. Accessibility Features
+ */
+
+/* ========================================
+   1. TYPOGRAPHY & FONT IMPORTS
+   ======================================== */
+
+/**
+ * Primary font import - Georama 800 weight for branding
+ * Used specifically for the app title with gradient text effect
+ */
 @import url('https://fonts.googleapis.com/css?family=Georama:800&display=swap');
- /*Main shades of red*/
+
+/* ========================================
+   2. CSS CUSTOM PROPERTIES (VARIABLES)
+   ======================================== */
+
+/**
+ * Color System - Eli Lilly Brand Colors
+ * Organized into primary (red), accent (blue), and neutral palettes
+ * Each palette includes 9 shades from lightest (100) to darkest (900)
+ */
 :root {
+  /* PRIMARY PALETTE - Red tones (Lilly brand primary) */
+  /*Main shades of red*/
  
 
-  --primary-100: #FFF5F2;
-  --primary-200: #FEC5B9;
-  --primary-300: #F88C7D;
-  --primary-400: #E84B42;
-  --primary-500: #C90C0C;
-  --primary-600: #A10404;
-  --primary-700: #780101;
-  --primary-800: #4F0000;
-  --primary-900: #260000;
+  --primary-100: #FFF5F2; /* Lightest red - backgrounds, highlights */
+  --primary-200: #FEC5B9; /* Light red - sidebar background */
+  --primary-300: #F88C7D; /* Medium-light red - borders, accents */
+  --primary-400: #E84B42; /* Core red - buttons, primary actions */
+  --primary-500: #C90C0C; /* Strong red - active states */
+  --primary-600: #A10404; /* Dark red - hover states */
+  --primary-700: #780101; /* Darker red - text, emphasis */
+  --primary-800: #4F0000; /* Very dark red - high contrast */
+  --primary-900: #260000; /* Darkest red - maximum contrast */
 
-  
-  --accent-100: #F2F6FF;
-  --accent-200: #C9DAFF;
-  --accent-300: #9EC2FD;
-  --accent-400: #72ADF7;
-  --accent-500: #479AED;
-  --accent-600: #2378BB;
-  --accent-700: #115C8A;
-  --accent-800: #093E58;
-  --accent-900: #041D26;
+  /* ACCENT PALETTE - Blue tones (secondary brand color) */
+  --accent-100: #F2F6FF; /* Lightest blue - page backgrounds */
+  --accent-200: #C9DAFF; /* Light blue - subtle highlights */
+  --accent-300: #9EC2FD; /* Medium-light blue - soft accents */
+  --accent-400: #72ADF7; /* Core blue - links, secondary actions */
+  --accent-500: #479AED; /* Strong blue - interactive elements */
+  --accent-600: #2378BB; /* Dark blue - focus states */
+  --accent-700: #115C8A; /* Darker blue - emphasis */
+  --accent-800: #093E58; /* Very dark blue - deep emphasis */
+  --accent-900: #041D26; /* Darkest blue - maximum contrast */
 
-  
-  --neutral-100: #FCFBFA;
-  --neutral-200: #F0EBEA;
-  --neutral-300: #E4DBDA;
-  --neutral-400: #D8CBCB;
-  --neutral-500: #CCBCBC;
-  --neutral-600: #A39595;
-  --neutral-700: #796E6E;
-  --neutral-800: #504848;
-  --neutral-900: #262222;
+  /* NEUTRAL PALETTE - Gray tones (content and UI elements) */
+  --neutral-100: #FCFBFA; /* Off-white - card backgrounds */
+  --neutral-200: #F0EBEA; /* Light gray - subtle borders */
+  --neutral-300: #E4DBDA; /* Medium-light gray - input borders */
+  --neutral-400: #D8CBCB; /* Medium gray - disabled states */
+  --neutral-500: #CCBCBC; /* Mid-gray - placeholders */
+  --neutral-600: #A39595; /* Dark-medium gray - secondary text */
+  --neutral-700: #796E6E; /* Dark gray - body text */
+  --neutral-800: #504848; /* Very dark gray - headings */
+  --neutral-900: #262222; /* Near-black - primary text */
 }
+
+/* ========================================
+   3. BASE LAYOUT & APP STRUCTURE
+   ======================================== */
+
+/**
+ * Body element - Sets up the full viewport layout
+ * Uses accent-100 for a light blue background tone
+ * Prevents scrolling on the main container
+ */
 /*background: linear-gradient(135deg, #e0e7ff 0%, #f5f7fa 100%); */
 body {
   background: var(--accent-100);
   margin: 0;
   height: 100vh;
-  overflow: hidden;
+  overflow: hidden; /* Prevents page-level scrolling */
 }
 
+/**
+ * Main App container - Flexbox layout for sidebar + main content
+ * Uses Roboto as primary font with fallbacks
+ */
 .App {
   display: flex;
   height: 100vh;
   background: var(--accent-100);
   font-family: 'Roboto', Arial, sans-serif;
 }
+/* ========================================
+   4. SIDEBAR NAVIGATION
+   ======================================== */
+
+/**
+ * Sidebar menu container - Chat navigation and branding
+ * Fixed width with primary brand colors and subtle shadow
+ */
 /*Sidebar color*/
 .sidemenu {
   width: 260px;
-  background: var(--primary-200); /* Soft red */
+  background: var(--primary-200); /* Soft red background */
   color: var(--primary-900);
   padding: 32px 0;
   height: 100vh;
-  box-shadow: 2px 0 24px 0 rgba(200, 12, 12, 0.07);
+  box-shadow: 2px 0 24px 0 rgba(200, 12, 12, 0.07); /* Subtle red shadow */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   transition: background 0.3s;
 }
 
+/**
+ * Sidebar headings - Currently unused but styled for consistency
+ */
 .sidemenu h2 {
   margin: 0 0 32px 32px;
   font-size: 1.2rem;
@@ -71,6 +143,9 @@ body {
   letter-spacing: 1px;
 }
 
+/**
+ * Chat list container - Removes default list styling
+ */
 .sidemenu ul {
   list-style: none;
   padding: 0;
@@ -78,6 +153,10 @@ body {
   width: 100%;
 }
 
+/**
+ * Individual chat items - Clickable conversation entries
+ * Smooth hover transitions with primary color highlights
+ */
 .sidemenu li {
   padding: 12px 0 12px 12px;
   border-radius: 8px;
@@ -89,12 +168,20 @@ body {
   color: var(--primary-900);
 }
 
+/**
+ * Chat item hover and active states
+ * Consistent branding with white text on primary background
+ */
 .sidemenu li:hover,
 .sidemenu li.active {
   background: var(--primary-400); 
   color: #fff;
 }
 
+/**
+ * Active chat highlighting - Currently selected conversation
+ * Enhanced with shadow and smooth transitions for visual feedback
+ */
 .active-chat {
   background: var(--primary-400);
   color: #fff;
@@ -106,102 +193,142 @@ body {
 }
 
 .active-chat::before {
-  display: none;
+  display: none; /* Removes any pseudo-element styling */
 }
 
+/* ========================================
+   5. CHAT CONTAINER & MESSAGES
+   ======================================== */
+
+/**
+ * Main chat area - Flexible container for messages and input
+ * Rounded corners and subtle shadow for modern card-like appearance
+ */
 .chat-container {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-end; /* Aligns content to bottom */
   height: 100vh;
   width: 100%;
   background: var(--neutral-100);
-  border-radius: 0 18px 18px 0;
+  border-radius: 0 18px 18px 0; /* Rounded right side only */
   margin: 0;
   box-shadow: 0 4px 32px rgba(71,154,237,0.06);
   overflow: hidden;
   position: relative;
-  transition: font-size 0.2s;
+  transition: font-size 0.2s; /* Smooth font size changes */
 }
+
+/**
+ * Messages container - Scrollable area for conversation history
+ * Flex column layout with gap between messages for readability
+ */
 /* Chat container styles */
 .messages {
   flex: 1;
-  padding: 80px 16px 8px 16px; 
-  overflow-y: auto;
+  padding: 80px 16px 8px 16px; /* Top padding accounts for header controls */
+  overflow-y: auto; /* Enable vertical scrolling */
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 18px; /* Consistent spacing between messages */
   background: transparent;
-  min-height: 0;
+  min-height: 0; /* Allows flex shrinking */
 }
 
+/**
+ * Individual message bubbles - Base styling for user and bot messages
+ * Consistent padding, rounded corners, and subtle shadows
+ */
 .message {
-  max-width: 60%;
+  max-width: 60%; /* Prevents messages from spanning full width */
   padding: 16px 22px;
   border-radius: 12px;
-  font-size: inherit;
+  font-size: inherit; /* Respects parent font size settings */
   line-height: 1.6;
-  word-break: break-word;
+  word-break: break-word; /* Handles long words gracefully */
   box-shadow: 0 1px 4px rgba(71,154,237,0.04);
   transition: background 0.2s;
-  animation: messageIn 0.35s cubic-bezier(.4,0,.2,1);
+  animation: messageIn 0.35s cubic-bezier(.4,0,.2,1); /* Smooth entry animation */
 }
 
+/**
+ * User message styling - Right-aligned with primary brand colors
+ * Gradient background and modified border radius for speech bubble effect
+ */
 .message.user {
   align-self: flex-end;
   background: linear-gradient(90deg, var(--primary-400) 60%, var(--primary-500) 100%);
   color: #fff;
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 4px; /* Pointed corner effect */
   border-top-right-radius: 16px;
   border-top-left-radius: 16px;
   box-shadow: 0 2px 8px rgba(201,12,12,0.10);
 }
 
+/**
+ * Bot message styling - Left-aligned with neutral colors and accent border
+ * White background with primary left border for visual distinction
+ */
 .message.bot {
   align-self: flex-start;
   background: #fff;
   color: var(--neutral-900);
-  border-radius: 18px 18px 18px 6px;
+  border-radius: 18px 18px 18px 6px; /* Pointed bottom-left corner */
   border: 1.5px solid var(--accent-200);
   box-shadow: 0 2px 12px 0 rgba(71,154,237,0.07);
   padding: 18px 26px;
   position: relative;
   margin-left: 2px;
   margin-bottom: 2px;
-   
-  
-  border-left: 4px solid var(--primary-400);
+  border-left: 4px solid var(--primary-400); /* Accent border for bot identification */
   padding-left: 22px;
-  
   transition: box-shadow 0.2s, border 0.2s;
 }
+/* ========================================
+   6. INPUT CONTROLS & BUTTONS
+   ======================================== */
+
+/**
+ * Input bar container - Fixed at bottom with consistent spacing
+ * Subtle border and shadow for visual separation from messages
+ */
 /*Input bar Styles*/
 .input-bar {
   display: flex;
   padding: 18px 24px;
   background: var(--neutral-100);
   border-top: 1px solid var(--neutral-300);
-  box-shadow: 0 -2px 12px rgba(71,154,237,0.04);
+  box-shadow: 0 -2px 12px rgba(71,154,237,0.04); /* Upward shadow */
   position: static;
 }
 
+/**
+ * Text input field - Flexible width with focus states
+ * Inherits font size for accessibility and consistency
+ */
 .input-bar input {
   flex: 1;
   padding: 14px 16px;
   border-radius: 8px;
   border: 1px solid var(--neutral-300);
-  font-size: inherit; /* <-- Use inherit instead of a fixed value */
+  font-size: inherit; /* Uses parent font size setting */
   outline: none;
   transition: border 0.2s;
   background: var(--accent-100);
   color: var(--neutral-900);
 }
 
+/**
+ * Input focus state - Primary brand color for active indication
+ */
 .input-bar input:focus {
   border: 1.5px solid var(--primary-400);
   background: #fff;
 }
 
+/**
+ * Input bar button base styles - Clean, minimal design
+ */
 .input-bar button {
   background: transparent;
   border: none;
@@ -213,8 +340,13 @@ body {
 }
 
 .input-bar button:focus {
-  outline: none;
+  outline: none; /* Custom focus handling via button-specific styles */
 }
+
+/**
+ * File attachment button - Styled as icon with hover effects
+ * Primary color with scaling animation on interaction
+ */
 /*File attach style*/
 .file-attach {
   display: flex;
@@ -225,7 +357,7 @@ body {
   cursor: pointer;
   color: var(--primary-400);
   transition: color 0.2s, transform 0.15s;
-  user-select: none;
+  user-select: none; /* Prevents text selection */
 }
 
 .file-attach:hover,
@@ -243,6 +375,14 @@ body {
   stroke: var(--primary-600);
   transform: scale(1.18);
 }
+/* ========================================
+   7. USER PROFILE & AUTHENTICATION
+   ======================================== */
+
+/**
+ * Profile circle - User avatar display in top navigation
+ * Circular design with Lilly brand colors and hover effects
+ */
 /*Profile circle styles*/
 .profile-circle {
   width: 48px;
@@ -253,24 +393,30 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: hidden; /* Ensures images stay circular */
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .profile-circle:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px); /* Subtle lift effect */
   box-shadow: 0 4px 12px rgba(201,12,12,0.2);
 }
 
+/**
+ * Profile image styling - For uploaded avatar images
+ */
 .profile-circle img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: cover; /* Maintains aspect ratio */
 }
 
-
+/**
+ * Profile initials - Fallback text when no image is uploaded
+ * High contrast typography with subtle effects
+ */
 .profile-circle span {
   color: rgba(255,255,255,0.92);
   font-weight: 700;
@@ -285,9 +431,13 @@ body {
   height: 100%;
   text-shadow: 0 2px 8px rgba(0,0,0,0.08);
   border-radius: 12px;
-  filter: blur(0.2px);
+  filter: blur(0.2px); /* Subtle text smoothing */
 }
 
+/**
+ * Custom scrollbar styling for messages area
+ * Minimal design that matches the overall aesthetic
+ */
 /* Scrollbar styles */
 .messages::-webkit-scrollbar {
   width: 8px;
@@ -297,13 +447,18 @@ body {
   background: var(--accent-200);
   border-radius: 4px;
 }
+
+/**
+ * New chat button - Primary action in sidebar
+ * Prominent styling with icon rotation effect on hover
+ */
 /*New chat button styles*/
 .new-chat-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: calc(100% - 48px);
+  width: calc(100% - 48px); /* Accounts for sidebar padding */
   margin: 0 24px 24px 24px;
   padding: 12px 16px;
   background: var(--primary-400);
@@ -329,8 +484,13 @@ body {
 }
 
 .new-chat-btn:hover svg {
-  transform: rotate(90deg);
+  transform: rotate(90deg); /* Plus icon rotation effect */
 }
+
+/**
+ * Send button - Message submission control
+ * Icon-based button with color transitions
+ */
 /* Send button styles */
 .send-btn {
   background: transparent;
@@ -354,6 +514,10 @@ body {
 .send-btn:hover svg {
   stroke: var(--primary-600);
 }
+/**
+ * App title/logo - Main branding element in sidebar
+ * Uses Georama font with gradient text effect for visual impact
+ */
 /*title styles*/
 .app-title {
   width: 100%;
@@ -364,13 +528,17 @@ body {
   color: var(--primary-700);
   margin-bottom: 24px;
   margin-top: 8px;
-  font-family: 'Georama', 'Segoe UI', 'Roboto', Arial, sans-serif; /* Georama first */
+  font-family: 'Georama', 'Segoe UI', 'Roboto', Arial, sans-serif; /* Georama for branding */
   background: linear-gradient(90deg, var(--primary-400) 20%, var(--primary-700) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background-clip: text; /* Fallback for non-webkit browsers */
 }
 
+/**
+ * Centered input group - Used for new chat welcome screen
+ * Positioned absolutely in center with responsive width
+ */
 .input-bar-center-group {
   position: absolute;
   top: 50%;
@@ -389,6 +557,11 @@ body {
   border-radius: 16px;
   background: var(--neutral-100);
 }
+
+/**
+ * Welcome message - Greeting text for new conversations
+ * Larger font size and subtle styling for friendly first impression
+ */
 /* Welcome message styles */
 .welcome-message {
   text-align: center;
@@ -397,8 +570,13 @@ body {
   font-weight: 500;
   letter-spacing: 0.5px;
   opacity: 0.85;
-  font-size: 1.4em; /* 1.4 times the parent font size */
+  font-size: 1.4em; /* Relative to parent font size */
 }
+
+/**
+ * Dark mode toggle - Theme switching control
+ * Positioned in top-left with smooth transitions
+ */
 /* Dark mode toggle button */
 .dark-mode-toggle {
   position: absolute;
@@ -430,6 +608,10 @@ body {
 .dark-mode-toggle:hover svg {
   transform: scale(1.1);
 }
+/**
+ * Top right controls container - Houses profile and settings buttons
+ * Positioned absolutely for consistent placement across all screens
+ */
 /* Dark mode toggle button hover effect */
 .top-right-controls {
   position: absolute;
@@ -437,35 +619,59 @@ body {
   right: 32px;
   display: flex;
   align-items: center;
-  gap: 12px; /* space between profile and settings */
+  gap: 12px; /* Space between profile and settings buttons */
   z-index: 20;
 }
 
+/**
+ * Message timestamp styling - Shows when messages were sent
+ * Subtle, smaller font size for non-intrusive time display
+ */
 /* Message time styles */
 .msg-time {
   font-size: 0.8em; /* 80% of parent font size */
 }
 
+/* ========================================
+   8. RESPONSIVE DESIGN
+   ======================================== */
+
+/**
+ * Mobile breakpoint adjustments
+ * Ensures usability on smaller screens by adjusting input width
+ */
 @media (max-width: 700px) {
   .input-bar-center-group {
-    width: 90%;
+    width: 90%; /* Wider on mobile devices */
   }
   .input-bar-center {
     width: 100%;
   }
 }
+
+/* ========================================
+   9. DARK MODE OVERRIDES
+   ======================================== */
+
+/**
+ * Dark mode color palette override
+ * Redefines CSS custom properties for dark theme
+ * Maintains accessibility and brand consistency in low-light environments
+ */
 /* Dark mode styles and colors*/
 .dark-mode {
+  /* Primary palette - Darker red variations */
   --primary-100: #2d2323;
   --primary-200: #3a2323;
   --primary-300: #4f2323;
-  --primary-400: #e84b42;
+  --primary-400: #e84b42; /* Keep core red for consistency */
   --primary-500: #c90c0c;
   --primary-600: #a10404;
-  --primary-700: #fff;
+  --primary-700: #fff; /* Light text in dark mode */
   --primary-800: #fff;
   --primary-900: #fff;
 
+  /* Accent palette - Darker blue variations */
   --accent-100: #181c23;
   --accent-200: #232a36;
   --accent-300: #2c3442;
@@ -476,6 +682,7 @@ body {
   --accent-800: #093e58;
   --accent-900: #041d26;
 
+  /* Neutral palette - Dark gray variations */
   --neutral-100: #23272f;
   --neutral-200: #2c313a;
   --neutral-300: #353b47;
@@ -484,8 +691,12 @@ body {
   --neutral-600: #6c768a;
   --neutral-700: #aeb4c2;
   --neutral-800: #d1d5de;
-  --neutral-900: #fff;
+  --neutral-900: #fff; /* White text in dark mode */
 }
+/**
+ * Dark mode component overrides
+ * Specific adjustments for components that need different styling in dark mode
+ */
 /* Dark mode styles */
 .dark-mode .message.bot {
   background: var(--neutral-200);
@@ -502,6 +713,15 @@ body {
   background: var(--neutral-200);
   color: var(--neutral-900);
 }
+
+/* ========================================
+   10. LOADING & ANIMATION STATES
+   ======================================== */
+
+/**
+ * Typing indicator - Shows when bot is composing a response
+ * Animated dots with staggered timing for natural feel
+ */
 /*Typing indicator styles*/
 .typing-indicator {
   display: inline-block;
@@ -527,10 +747,72 @@ body {
   animation-delay: 0.4s;
 }
 
+/**
+ * Bounce animation for typing indicator
+ * Creates the classic "thinking" animation effect
+ */
 @keyframes typing-bounce {
   0%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-8px); }
 }
+
+/**
+ * Enhanced loading indicator with descriptive text
+ * Shows current processing stage (supervisor → agent selection)
+ */
+.loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1em;
+  vertical-align: middle;
+}
+
+.loading-dots span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 1px;
+  background: var(--primary-400);
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: loading-bounce 1s infinite both;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes loading-bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+}
+
+/**
+ * Message entry animation
+ * Smooth fade-in effect for new messages
+ */
+@keyframes messageIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* ========================================
+   11. CONVERSATION SUGGESTIONS
+   ======================================== */
+
+/**
+ * Suggestions bar - Interactive conversation starters
+ * Displays suggested questions to help users get started
+ */
 /* Suggestions bar styles */
 .suggestions-bar {
   display: flex;
@@ -541,6 +823,10 @@ body {
   font-size: inherit;
 }
 
+/**
+ * Individual suggestion buttons
+ * Styled as pills with hover effects and brand colors
+ */
 .suggestion-btn {
   background: var(--primary-200);
   color: var(--primary-700);
@@ -557,6 +843,10 @@ body {
   color: #fff;
 }
 
+/**
+ * Special styling for regulation-related suggestions
+ * Uses brown/gold colors to distinguish regulation content
+ */
 /* Regulation bot suggestion styling */
 .suggestion-regulation {
   border-left-color: #8B4513;
@@ -570,6 +860,10 @@ body {
   background: rgba(139, 69, 19, 0.2);
 }
 
+/**
+ * Message timestamp styling - Consistent across themes
+ * Shows when messages were sent with subtle appearance
+ */
 .msg-time {
   font-size: inherit;
   color: var(--neutral-600);
@@ -1154,6 +1448,19 @@ body {
   background: var(--primary-500);
 }
 
+/* =================================================================
+   Section 11: Voice Features
+   ================================================================= */
+/**
+ * Voice Control Interface
+ * 
+ * These styles manage the voice input/output functionality:
+ * - Voice button with microphone icon and listening states
+ * - Status indicators for voice recognition
+ * - Visual feedback for active voice sessions
+ * - Integration with browser speech APIs
+ */
+
 /* Voice Input Button Styles */
 .voice-btn {
   background: transparent;
@@ -1296,6 +1603,19 @@ body {
   border-color: var(--neutral-700);
 }
 
+/* =================================================================
+   Section 12: Accessibility Features
+   ================================================================= */
+/**
+ * Accessibility and User Preferences
+ * 
+ * These media queries respect user system preferences for:
+ * - Reduced motion for users sensitive to animations
+ * - High contrast mode for improved visibility
+ * - Screen reader compatibility
+ * - Keyboard navigation support
+ */
+
 /* Accessibility improvements for voice features */
 @media (prefers-reduced-motion: reduce) {
   .voice-btn.listening {
@@ -1318,6 +1638,19 @@ body {
     background: var(--primary-100);
   }
 }
+
+/* =================================================================
+   Section 13: Message Content Formatting
+   ================================================================= */
+/**
+ * Message Display and Typography
+ * 
+ * Styles for rendering formatted agent responses including:
+ * - Structured message layout with proper spacing
+ * - Enhanced headings for section organization
+ * - List formatting for readable content
+ * - Dark mode variations
+ */
 
 /* Message content formatting */
 .message-content {
@@ -1650,9 +1983,14 @@ body {
   border-bottom-color: var(--primary-600);
 }
 
+/**
+ * Agent message content cleanup
+ * Removes any residual markdown symbols that might appear in rendered content
+ */
 /* Remove any residual # symbols that might appear */
 .agent-message-content {
   /* This will hide any standalone # symbols */
+  position: relative; /* Provides context for pseudo-elements */
 }
 
 .agent-message-content::before {

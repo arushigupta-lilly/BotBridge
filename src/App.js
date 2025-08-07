@@ -1,21 +1,45 @@
-import React, { useState, useRef, useEffect } from 'react';
+/**
+ * BotBridge - Multi-Agent Chatbot Interface
+ * 
+ * A React-based chatbot application that provides access to specialized AI agents
+ * for Eli Lilly and Company employees. Features include voice interaction,
+ * multi-chat support, agent routing, and enterprise authentication.
+ * 
+ * @author Daniella Melero
+ * @version 0.1.0
+ * @since 2025-06-18
+ */
+
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
 
+/**
+ * Formats raw bot response text with enhanced markdown-like styling
+ * Converts various text patterns into HTML for rich display
+ * 
+ * @param {string} rawText - The raw response text from the bot
+ * @returns {string} HTML-formatted text ready for display
+ */
 const formatAgentResponse = (rawText) => {
   let formatted = rawText
+    // Convert markdown-style bold text (**text**)
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // Convert markdown-style italic text (*text*)
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    // Convert markdown headers (### ## #)
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
     .replace(/^#{4,} (.+)$/gm, '<h4>$1</h4>')
+    // Format numbered lists
     .replace(/^\s*(\d+)\.\s+/gm, '$1. ')
     .replace(/(\d+)\.\s+/g, '\n<strong class="list-number">$1.</strong> ')
+    // Clean up excessive whitespace
     .replace(/\n{3,}/g, '\n\n')
     .replace(/[ \t]{2,}/g, ' ') 
 
-    
-    .replace(/(Accuracy:|Completeness:)[\s\n\r]*([01](?:\.\d+)?)/gi, (match, label, score) => {     
+    // Format accuracy and completeness scores with color coding
+    .replace(/(Accuracy:|Completeness:)[\s\n\r]*([01](?:\.\d+)?)/gi, (_match, label, score) => {     
       let colorClass = '';
       const num = parseFloat(score);
       if (num <= 0.5) colorClass = 'score-low';
@@ -23,18 +47,31 @@ const formatAgentResponse = (rawText) => {
       else colorClass = 'score-high';
       return `<strong>${label}</strong> <span class="score-value ${colorClass}">${score}</span>`;
     })
+    // Format relevancy ranking headers
     .replace(/(Relevancy Ranking\s*\(.*?\):)/i, '<span class="relevancy-header">$1</span>')
 
+    // Convert section headers (text ending with colon)
     .replace(/^([A-Z][^:\n<]*:)\s*$/gm, (match, text) => {
       if (text.includes('<')) return match;
       return `<h4>${text}</h4>`;
     })
+    // Capitalize first letter after bullet points and numbers
     .replace(/(^• |^\d+\. )([a-z])/gm, (match, prefix, letter) => prefix + letter.toUpperCase())
 
 
   return formatted;
 };
 
+/**
+ * Extracts agent information from bot response text
+ * Parses agent name from response format [Agent Name] and determines
+ * the appropriate agent type, icon, and display name
+ * 
+ * @param {string} responseText - Raw response text that may contain agent identifier
+ * @returns {Object} Object containing agent info and cleaned text
+ * @returns {Object} returns.agent - Agent metadata (name, type, icon, id)
+ * @returns {string} returns.text - Response text with agent identifier removed
+ */
 const extractAgentFromResponse = (responseText) => {
   // Look for pattern like [Agent Name] at the beginning
   const agentMatch = responseText.match(/^\[([^\]]+)\]/);
@@ -48,19 +85,26 @@ const extractAgentFromResponse = (responseText) => {
     let agentIcon = '🤖';
     let displayName = agentMatch[1].trim();
     
+    // Medicine/Medical Bot detection
     if (agentName.includes('medicine') || agentName.includes('medical') || agentName.includes('medbot') ){
       agentType = 'medicine';
       agentIcon = '💊';
       displayName = 'Medicine Bot';
-    } else if (agentName.includes('compliance') || agentName.includes('quality')) {
+    } 
+    // Compliance/Quality Bot detection
+    else if (agentName.includes('compliance') || agentName.includes('quality')) {
       agentType = 'compliance';
       agentIcon = '📋';
       displayName = 'Compliance Bot';
-    } else if (agentName.includes('regulations') || agentName.includes('regulation') || agentName.includes('scrape')) {
+    } 
+    // Web Search & Scrape Bot detection
+    else if (agentName.includes('regulations') || agentName.includes('regulation') || agentName.includes('scrape')) {
       agentType = 'websearch&scrape';
       agentIcon = '🌐';
       displayName = 'WebSearch&Scrape Bot';
-    } else if (agentName.includes('traveller') || agentName.includes('travel') || agentName.includes('trip')) {
+    } 
+    // Travel Bot detection
+    else if (agentName.includes('traveller') || agentName.includes('travel') || agentName.includes('trip')) {
       agentType = 'traveller';
       agentIcon = '🔎';
       displayName = 'Traveller Bot';
@@ -89,14 +133,25 @@ const extractAgentFromResponse = (responseText) => {
   };
 };
 
+/**
+ * Renders formatted bot messages with rich styling and interactive elements
+ * Processes formatted text into structured components (headings, lists, paragraphs)
+ * and adds feedback buttons for user interaction
+ * 
+ * @param {string} text - The bot response text to render
+ * @param {boolean} showAgentHeader - Whether to display agent header information
+ * @param {Object} _messageData - Additional message metadata (unused currently)
+ * @returns {JSX.Element} Formatted message component with interactive elements
+ */
 // Enhanced render formatted message with feedback buttons
-const renderFormattedMessage = (text, showAgentHeader = true, messageData = {}) => {
+const renderFormattedMessage = (text, showAgentHeader = true, _messageData = {}) => {
   const { agent, text: cleanText } = extractAgentFromResponse(text);
   const formatted = formatAgentResponse(cleanText);
   
   // Split by double line breaks for paragraphs
   const sections = formatted.split('\n\n').filter(section => section.trim());
   
+  // Process each section based on its content type
   const messageContent = sections.map((section, index) => {
     const trimmedSection = section.trim();
     
@@ -115,6 +170,7 @@ const renderFormattedMessage = (text, showAgentHeader = true, messageData = {}) 
       const listItems = [];
       let currentItem = '';
       
+      // Parse bullet list items, handling multi-line items
       lines.forEach(line => {
         const trimmedLine = line.trim();
         if (trimmedLine.startsWith('•')) {
@@ -150,6 +206,7 @@ const renderFormattedMessage = (text, showAgentHeader = true, messageData = {}) 
       let currentItem = '';
       let currentNumber = '';
       
+      // Parse numbered list items, handling multi-line items
       lines.forEach(line => {
         const trimmedLine = line.trim();
         const numberMatch = trimmedLine.match(/^(\d+)\.\s(.+)/);
@@ -189,6 +246,12 @@ const renderFormattedMessage = (text, showAgentHeader = true, messageData = {}) 
     );
   });
 
+  /**
+   * Handles user feedback on bot responses
+   * Displays appropriate thank you message based on feedback type
+   * 
+   * @param {string} feedbackType - Either 'like' or 'dislike'
+   */
   // Function to handle feedback button clicks
   const handleFeedbackClick = (feedbackType) => {
     const message = feedbackType === 'like' 
@@ -242,6 +305,13 @@ const renderFormattedMessage = (text, showAgentHeader = true, messageData = {}) 
   );
 };
 
+/**
+ * Validates if a user session is still active
+ * Checks if the session hasn't exceeded the 24-hour timeout
+ * 
+ * @param {Object} userData - User data object containing loginTime
+ * @returns {boolean} True if session is valid, false otherwise
+ */
 // Add this function to check session validity
 const isSessionValid = (userData) => {
   if (!userData || !userData.loginTime) return false;
@@ -252,8 +322,25 @@ const isSessionValid = (userData) => {
   return (now - userData.loginTime) < sessionDuration;
 };
 
+/**
+ * Main App Component - BotBridge Chatbot Interface
+ * 
+ * Manages the entire chatbot application state including:
+ * - Multi-chat conversations
+ * - User authentication and sessions
+ * - Voice recognition and speech synthesis
+ * - Agent routing and message formatting
+ * - UI state (modals, settings, themes)
+ * 
+ * @returns {JSX.Element} The complete BotBridge application
+ */
 //Functions and const for the app//
 function App() {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
+  
+  // Chat Management State
   const [chats, setChats] = useState(["Chat 1"]);
   const [activeChat, setActiveChat] = useState(0);
   const [chatMessages, setChatMessages] = useState({
@@ -261,6 +348,8 @@ function App() {
   });
   const [input, setInput] = useState("");
   const [hasStarted, setHasStarted] = useState(false);
+  
+  // UI State Management
   const [darkMode, setDarkMode] = useState(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
   const [typingStage, setTypingStage] = useState(1); // 1: first message, 2: second message
@@ -277,6 +366,10 @@ const typingStageTimeoutRef = useRef(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const recognitionRef = useRef(null);
   const synthRef = useRef(null);
+  
+  // ========================================
+  // USER AUTHENTICATION STATE
+  // ========================================
   
   // USER STATE - Always start with no user
   const [user, setUser] = useState(() => {
@@ -317,9 +410,78 @@ const typingStageTimeoutRef = useRef(null);
   });
   const [authError, setAuthError] = useState('');
 
-  // Add refs for auto-scrolling
-  const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
+  // ========================================
+  // VOICE INTERACTION FUNCTIONS
+  // ========================================
+
+  // Voice Recognition Functions
+  const startListening = useCallback(() => {
+    if (recognitionRef.current && !isListening) {
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+      }
+    }
+  }, [isListening]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+  }, [isListening]);
+
+  // Text-to-Speech Function
+  const speakText = useCallback((text) => {
+    if (synthRef.current && voiceEnabled && text) {
+      // Cancel any ongoing speech
+      synthRef.current.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = speechRate;
+      utterance.volume = speechVolume;
+      utterance.lang = 'en-US';
+      
+      // Add event listeners
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      // Get available voices and prefer a natural sounding one
+      const voices = synthRef.current.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.lang.includes('en') && 
+        (voice.name.includes('Natural') || voice.name.includes('Neural'))
+      ) || voices.find(voice => voice.lang.includes('en'));
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      synthRef.current.speak(utterance);
+    }
+  }, [voiceEnabled, speechRate, speechVolume]);
+
+  // Repeat last bot message
+  const repeatLastMessage = useCallback(() => {
+    const messages = chatMessages[activeChat] || [];
+    const lastBotMessage = messages.slice().reverse().find(msg => msg.sender === 'bot');
+    if (lastBotMessage) {
+      speakText(lastBotMessage.text);
+    }
+  }, [chatMessages, activeChat, speakText]);
+
+  // Stop speaking
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  // ========================================
+  // EFFECTS AND INITIALIZATION
+  // ========================================
 
   // Update showLogin when user changes
   useEffect(() => {
@@ -401,79 +563,26 @@ const typingStageTimeoutRef = useRef(null);
       }
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [isListening]);
+  }, [isListening, stopListening, startListening, repeatLastMessage]);
 
-  // Voice Recognition Functions
-  const startListening = () => {
-    if (recognitionRef.current && !isListening) {
-      try {
-        recognitionRef.current.start();
-      } catch (error) {
-        console.error('Error starting speech recognition:', error);
-      }
-    }
-  };
+  // ========================================
+  // USER AUTHENTICATION & PROFILE MANAGEMENT
+  // ========================================
 
-  const stopListening = () => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
-    }
-  };
-
-  // Text-to-Speech Function
-  const speakText = (text) => {
-    if (synthRef.current && voiceEnabled && text) {
-      // Cancel any ongoing speech
-      synthRef.current.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = speechRate;
-      utterance.volume = speechVolume;
-      utterance.lang = 'en-US';
-      
-      // Add event listeners
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      
-      // Get available voices and prefer a natural sounding one
-      const voices = synthRef.current.getVoices();
-      const preferredVoice = voices.find(voice => 
-        voice.lang.includes('en') && 
-        (voice.name.includes('Natural') || voice.name.includes('Neural'))
-      ) || voices.find(voice => voice.lang.includes('en'));
-      
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-      
-      synthRef.current.speak(utterance);
-    }
-  };
-
-  // Repeat last bot message
-  const repeatLastMessage = () => {
-    const messages = chatMessages[activeChat] || [];
-    const lastBotMessage = messages.slice().reverse().find(msg => msg.sender === 'bot');
-    if (lastBotMessage) {
-      speakText(lastBotMessage.text);
-    }
-  };
-
-  // Stop speaking
-  const stopSpeaking = () => {
-    if (synthRef.current) {
-      synthRef.current.cancel();
-      setIsSpeaking(false);
-    }
-  };
-
+  // Generate user display information
   const userName = user ? `${user.firstName} ${user.lastName}` : "Guest User";
   const initials = user ? userName
     .split(' ')
     .map(n => n[0])
     .join('')
-    .toUpperCase() : "GU";  // Lilly email domain validation
+    .toUpperCase() : "GU";  
+    
+  /**
+   * Validates Lilly email domains
+   * @param {string} email - Email address to validate
+   * @returns {boolean} True if email is from valid Lilly domain
+   */
+  // Lilly email domain validation
   const isValidLillyEmail = (email) => {
     const lillyDomains = [
       '@lilly.com',
@@ -482,6 +591,12 @@ const typingStageTimeoutRef = useRef(null);
     return lillyDomains.some(domain => email.toLowerCase().endsWith(domain));
   };
 
+  /**
+   * Handles user login authentication
+   * Validates email domain, password requirements, and creates user session
+   * 
+   * @param {Event} e - Form submission event
+   */
   // Authentication functions
   const handleLogin = (e) => {
     e.preventDefault();
@@ -545,6 +660,10 @@ const typingStageTimeoutRef = useRef(null);
     setAuthError('');
   };
 
+  /**
+   * Handles user logout
+   * Clears user session, resets chat state, and shows login screen
+   */
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem("user"); // Clear from localStorage
@@ -560,6 +679,12 @@ const typingStageTimeoutRef = useRef(null);
     setShowSuggestions(true);
   };
 
+  /**
+   * Handles profile editing form submission
+   * Validates form data and updates user profile information
+   * 
+   * @param {Event} e - Form submission event
+   */
   const handleEditProfile = (e) => {
     e.preventDefault();
     
@@ -597,6 +722,9 @@ const typingStageTimeoutRef = useRef(null);
     setEditProfileForm({ firstName: '', lastName: '', email: '', avatar: null });
   };
 
+  /**
+   * Opens the profile editing modal with current user data
+   */
   const openEditProfile = () => {
     // Check if user exists before accessing properties
     if (!user) {
@@ -614,6 +742,12 @@ const typingStageTimeoutRef = useRef(null);
     setShowProfile(false);
   };
 
+  /**
+   * Handles avatar image upload and conversion to base64
+   * 
+   * @param {File} file - The uploaded image file
+   * @param {string} formType - The form context ('edit' for profile editing)
+   */
   const handleAvatarUpload = (file, formType) => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -628,6 +762,14 @@ const typingStageTimeoutRef = useRef(null);
     }
  };
 
+// ========================================
+// CHAT SUGGESTIONS AND INTERACTION
+// ========================================
+
+/**
+ * Predefined conversation starters for different agent types
+ * These suggestions help users understand the bot's capabilities
+ */
 //Suggetions for the bot//
 // Replace getFourAgentSuggestions() with static suggestions
 const [suggestions] = useState([
@@ -638,11 +780,17 @@ const [suggestions] = useState([
   "What are the newest 2025 Medicaid guidelines?",
 ]);
 
+/**
+ * Handles sending user messages to the backend API
+ * Manages bot typing indicators, API communication, and voice output
+ */
 //This function handle the send button and the connection with the backend and the timestamp of the message//
   const handleSend = async () => {
     if (!input.trim()) return;
     setShowSuggestions(false);
     const now = new Date();
+    
+    // Add user message to chat
     setChatMessages(prev => {
       const updated = { ...prev };
       updated[activeChat] = [
@@ -655,6 +803,8 @@ const [suggestions] = useState([
     setHasStarted(true);
     setIsBotTyping(true);
     setTypingStage(1);
+    
+    // Set up typing stage progression
     if (typingStageTimeoutRef.current) clearTimeout(typingStageTimeoutRef.current);
 typingStageTimeoutRef.current = setTimeout(() => {
   setTypingStage(2);
@@ -662,6 +812,7 @@ typingStageTimeoutRef.current = setTimeout(() => {
 
 //* This is where the bot's response is fetched from the backend *//
     try {
+      // Send request to supervisor bot API
       const response = await fetch("http://localhost:5000/api/supervisor-bot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -670,6 +821,8 @@ typingStageTimeoutRef.current = setTimeout(() => {
       const data = await response.json();
       const botNow = new Date();
       const botResponse = data.reply || "Sorry, no response.";
+      
+      // Add bot response to chat
       setChatMessages(prev => {
         const updated = { ...prev };
         updated[activeChat] = [
@@ -684,6 +837,7 @@ typingStageTimeoutRef.current = setTimeout(() => {
         speakText(botResponse);
       }
     } catch (error) {
+      console.error('API Error:', error);
       const errorMessage = "Error connecting to Supervisor-bot.";
       setChatMessages(prev => {
         const updated = { ...prev };
@@ -699,6 +853,8 @@ typingStageTimeoutRef.current = setTimeout(() => {
         speakText(errorMessage);
       }
     }
+    
+    // Clean up typing indicators
     setIsBotTyping(false);
     setTypingStage(1);
 if (typingStageTimeoutRef.current) {
@@ -707,9 +863,22 @@ if (typingStageTimeoutRef.current) {
 }
   };
 
+  /**
+   * Handles Enter key press for sending messages
+   * @param {KeyboardEvent} e - Keyboard event
+   */
   const handleInputKeyDown = (e) => {
     if (e.key === 'Enter') handleSend();
   };
+  
+  // ========================================
+  // CHAT MANAGEMENT FUNCTIONS
+  // ========================================
+  
+  /**
+   * Creates a new chat conversation
+   * Initializes with default greeting message and switches to new chat
+   */
 //This function handle the new chat button//
   const handleNewChat = () => {
     const newIndex = chats.length;
@@ -723,6 +892,13 @@ if (typingStageTimeoutRef.current) {
     setHasStarted(false);
     setShowSuggestions(true); // <-- Always show suggestions on new chat
   };
+  
+  /**
+   * Switches to a different chat conversation
+   * Updates active chat and determines if suggestions should be shown
+   * 
+   * @param {number} idx - Index of the chat to switch to
+   */
 //This function handle the chat selection//
   const handleSelectChat = idx => {
     setActiveChat(idx);
@@ -732,10 +908,19 @@ if (typingStageTimeoutRef.current) {
     setShowSuggestions(!started); // Show suggestions only if chat is new
   };
 
+  // Get current chat messages
   const messages = chatMessages[activeChat] || [];
+  
+  // ========================================
+  // MAIN RENDER COMPONENT
+  // ========================================
+  
 //Dark mode and light mode//
   return (
     <div className={`App${darkMode ? " dark-mode" : ""}`}>
+      {/* ========================================
+          SIDEBAR - Chat Navigation
+          ======================================== */}
       <aside className="sidemenu">
         <div className="app-title">BotBridge</div>
         <button className="new-chat-btn" onClick={handleNewChat}>
@@ -759,6 +944,9 @@ if (typingStageTimeoutRef.current) {
         </ul>
       </aside>
       
+      {/* ========================================
+          TOP NAVIGATION - User Profile & Settings
+          ======================================== */}
       <div className="top-right-controls">
         {user ? (
           <div className="profile-circle" onClick={() => setShowProfile(true)} style={{ cursor: "pointer" }}>
@@ -1313,8 +1501,23 @@ if (typingStageTimeoutRef.current) {
 
 export default App;
 
+/**
+ * Security Utilities
+ * ==================
+ * 
+ * Future enhancement: Client-side encryption for sensitive messages
+ * This function demonstrates how sensitive data could be encrypted
+ * before transmission or storage
+ */
+
+/**
+ * Encrypts sensitive message content using Web Crypto API
+ * @param {string} text - Text to encrypt
+ * @returns {Promise<ArrayBuffer>} Encrypted data
+ */
 // Encrypt sensitive messages
-const encryptMessage = async (text) => {
+// eslint-disable-next-line
+const _encryptMessage = async (text) => {
   const encoder = new TextEncoder();
   const data = encoder.encode(text);
   const key = await window.crypto.subtle.generateKey(
