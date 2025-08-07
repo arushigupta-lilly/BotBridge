@@ -251,6 +251,10 @@ For technical support or questions:
 - **v0.1.0** - Initial release with multi-agent support
 - **Current** - Enhanced voice features and accessibility improvements
 
+## 📚 Documentation
+
+- [Complete Project Documentation](docs/BotBridge_Project_Documentation.docx)
+
 ---
 
 **⚠️ Important Notice**: This application is restricted to authorized Eli Lilly and Company employees only. Unauthorized access is prohibited and may be subject to criminal and civil penalties.
