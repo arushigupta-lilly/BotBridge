@@ -216,6 +216,66 @@ Handles queries related to Lilly medicines, including side effects and ingredien
 }
 
 ```
+## Medbot Data configuration (storing documents about Lilly Prescribing Information, Drug Labels, etc.)
+
+```
+{
+  "name": "medbot",
+  "auth": {
+    "owners": [
+      "daniella.melero@lilly.com",
+      "arushi.gupta@lilly.com"
+    ],
+    "allow_access_to_reports_of": [],
+    "owners_group": [],
+    "access_groups": [],
+    "access_aws_roles": [],
+    "owners_aws_roles": [
+      "arn:aws:iam::283234040926:role/lrl-light-apps-chatbuilder-prd-ciab"
+    ],
+    "users": [],
+    "private": false
+  },
+  "s3_bucket": "lly-light-prod",
+  "s3_prefix": "llm-prd",
+  "exclude_filter": [],
+  "assume_role": "",
+  "displayName": "MedBot",
+  "data_config_description": "<p>Given information about a patient's experience/side effects with a Lilly medicine, given what you know about the medicine and its side effects, help them figure out what ingredients could be causing the issue and next steps on fixing the issue.</p>",
+  "embedding": {
+    "model": "text-embedding-3-large",
+    "open_api_type": "azure"
+  },
+  "model_version": {
+    "model_class": "lilly-openai",
+    "model_iteration": "7"
+  },
+  "vectorstore": "pinecone",
+  "concepts_of_interest": null,
+  "augmentable_metadata": null,
+  "allowed_model_configs": [
+    "medbot"
+  ],
+  "chunk_size": 1500,
+  "chunk_overlap": 300,
+  "index_name": "e311c5976ef10ea104309faec2631f08",
+  "contextual_chunking": {
+    "is_enable": false,
+    "separator": [
+      "\n\n",
+      "\n",
+      ".",
+      " "
+    ],
+    "chunk_size": 1500,
+    "chunk_overlap": 300,
+    "depth": 3
+  },
+  "multimodal": true,
+  "bounding_boxes": false,
+  "snd_config": null
+}
+```
 
 ---
 
@@ -399,6 +459,66 @@ Answers questions related to internal compliance rules and best practices.
     "top_n": 20
   },
   "context_cache_key": ""
+}
+
+```
+```
+{
+  "name": "complianceebot",
+  "auth": {
+    "owners": [
+      "daniella.melero@lilly.com",
+      "akhil.malhotra@lilly.com",
+      "arushi.gupta@lilly.com"
+    ],
+    "allow_access_to_reports_of": [],
+    "owners_group": [],
+    "access_groups": [],
+    "access_aws_roles": [],
+    "owners_aws_roles": [
+      "arn:aws:iam::283234040926:role/lrl-light-apps-chatbuilder-prd-ciab"
+    ],
+    "users": [],
+    "private": false
+  },
+  "s3_bucket": "lly-light-prod",
+  "s3_prefix": "llm-prd",
+  "exclude_filter": [],
+  "assume_role": "",
+  "displayName": "ComplianceBot",
+  "data_config_description": "Given information about problems or questions about compliance rules, it uses its knowledge base to help with any queries regarding compliance.",
+  "embedding": {
+    "model": "text-embedding-3-large",
+    "open_api_type": "azure"
+  },
+  "model_version": {
+    "model_class": "claude",
+    "model_iteration": "13"
+  },
+  "vectorstore": "pinecone",
+  "concepts_of_interest": null,
+  "augmentable_metadata": null,
+  "allowed_model_configs": [
+    "complianceebot"
+  ],
+  "chunk_size": 1500,
+  "chunk_overlap": 300,
+  "index_name": "696139917848e9e3730fe74bf338e5c0",
+  "contextual_chunking": {
+    "is_enable": false,
+    "separator": [
+      "\n\n",
+      "\n",
+      ".",
+      " "
+    ],
+    "chunk_size": 1500,
+    "chunk_overlap": 300,
+    "depth": 3
+  },
+  "multimodal": true,
+  "bounding_boxes": false,
+  "snd_config": null
 }
 
 ```
