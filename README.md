@@ -1,74 +1,86 @@
-<<<<<<< HEAD
-# Getting Started with Create React App
+# 🤖 BotBridge Setup Guide
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This guide will help you get BotBridge running locally. Follow the steps below to install dependencies, run the backend, and launch the frontend.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🛠 Prerequisites
 
-### `npm start`
+Before getting started, make sure you have the following installed:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Node.js & npm**  
+  [Download from Node.js official site](https://nodejs.org/en)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Yarn (optional but recommended)**  
+  You can install it globally with:  
+  ```bash
+  npm install -g yarn
+  ```
 
-### `npm test`
+- **Python**  
+  [Download Python](https://www.python.org/downloads/)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Lilly's Light Client**  
+  [Download the client](https://client-python.apps.lrl.lilly.com/)
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🚀 Getting Started
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 1. Clone the GitHub Repository
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
+git checkout master
+```
 
-### `npm run eject`
+### 2. Install Dependencies
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+If you're using Yarn:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+yarn install
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Or with npm:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm install
+```
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🧠 Running the Supervisor Bot Backend
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Locate the file `supervisorbot_api.py` in the project directory.
+2. Run it using Python:
 
-### Code Splitting
+```bash
+python supervisorbot_api.py
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+3. After the bot starts, a link will appear in the terminal. Click the link and enter your authentication code when prompted.
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 🌐 Running the BotBridge Web App
 
-### Making a Progressive Web App
+Once authenticated:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. Open a **new** terminal window.
+2. Run the frontend app with:
 
-### Advanced Configuration
+```bash
+yarn start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+3. This will launch the BotBridge web interface in your browser on `http://localhost:3000`.
 
-### Deployment
+You can now send queries to the bot from your local environment!
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## 📬 Support
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-=======
-# BotBridge
->>>>>>> b6e0f9f18f63c19e6c86bac903a3b44c00dd2507
+If you encounter any issues, feel free to contact: **guptaarushi68@gmail.com**
