@@ -462,6 +462,8 @@ Answers questions related to internal compliance rules and best practices.
 }
 
 ```
+ComplianceBot Data configuration (storing documents about Compliance Guidance with Field Reps, Lilly Red Book, etc.)
+
 ```
 {
   "name": "complianceebot",
